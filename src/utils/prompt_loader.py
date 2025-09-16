@@ -2,6 +2,7 @@ import yaml
 from src.config import PROMPT_DIR
 from functools import lru_cache
 from typing import Any, Dict
+from pathlib import Path
 
 TEMPLATE_KEY = "template"
 
@@ -10,11 +11,11 @@ class PromptLoader:
     - full_name: 'file.key[.subkey]' will prioritize file.yaml (file=first segment) if exists.
     """
     @classmethod
-    def get(cls, full_name: str) -> str:
+    def get(cls, full_name: str, dir:Path = None) -> str:
         parts = full_name.split(".")
         
         file_name, key_path = parts[0], parts[1:]
-        data = cls._load_file(file_name)
+        data = cls._load_file(file_name, dir)
         
         cur = data
         for k in key_path:
@@ -34,8 +35,11 @@ class PromptLoader:
     
     @staticmethod
     @lru_cache(maxsize=None)
-    def _load_file(file: str) -> dict:
-        path = PROMPT_DIR / f"{file}.yaml"
+    def _load_file(file: str, dir: Path = None) -> dict:
+        if dir:
+            path = dir / f"{file}.yaml"
+        else:
+            path = PROMPT_DIR / f"{file}.yaml"
         if not path.exists():
             raise FileNotFoundError(f"File not found: {path}")
         
