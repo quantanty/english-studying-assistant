@@ -9,6 +9,7 @@ class WordEntryState(TypedDict):
     meanings: List[Meaning]
     collocations: List[str]
     metadata: Optional[Dict]
+    result: Literal["success", "error"]
 
 class State(TypedDict):
     # ---- User input ----

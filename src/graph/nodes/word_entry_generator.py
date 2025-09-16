@@ -16,15 +16,19 @@ class WordEntryGenerator:
         messages = [
             SystemMessage(content=self.prompt)
         ]
-        word_entries = {}
-        node_results: str = state.get("node_results", "Result from WordEntryGenerator:\n")
+        word_entries = state.get("word_entries", {})
+        node_results: str = state.get("node_results", "")
+        node_results += "Results from WordEntryGenerator:\n"
         for word in words:
+            if entry:=word_entries.get(word, None) and entry.get("result", "error") == "success":
+                continue
             logger.debug(f"processing the word '{word}'")
             try:
                 entry: WordEntry = self.llm.invoke(messages + [HumanMessage(content=word)])
-                word_entries[word] = WordEntryState(word=word, **entry.model_dump())
+                word_entries[word] = WordEntryState(word=word, result="success", **entry.model_dump())
                 node_results += f"Successfully processed the word '{word}'.\n"
             except Exception as e:
+                word_entries[word] = WordEntryState(result="error")
                 node_results += f"Error while processing the word '{word}': {e}"
 
         return {**state, "word_entries": word_entries, "node_results": node_results}

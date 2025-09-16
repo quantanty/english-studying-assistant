@@ -1,5 +1,6 @@
 from src.schemas.state import State
 from src.schemas.models import OrchestratorOutput, Action
+from src.utils.state_utils import get_word_defining_results
 
 from langchain_core.messages import SystemMessage, HumanMessage
 import logging
@@ -19,16 +20,17 @@ class Orchestrator:
         node_results = state.get("node_results", "Result from Orchestrator:\n")
         step_history = state.get("step_history", [])
         extracted_words = state.get("words", [])
+        word_defining_results = get_word_defining_results(state.get("word_entries", {}))
         messages = [
-            SystemMessage(content=self.prompt.format(step_history=str(step_history), extracted_words=str(extracted_words))),
+            SystemMessage(content=self.prompt.format(step_history=str(step_history), extracted_words=word_defining_results)),
             HumanMessage(content=query)
         ]
         response = self.llm.invoke(messages)
         logger.debug(f"Orchestrator llm response: {response}")
 
         action = response.action
-        node_results += f"Taking '{action}' action."
-        step_history.append(f"Orchestrator choose '{action}'")
+        node_results += f"Taking '{action}' action.\n"
+        step_history.append(f"Orchestrator chose '{action}'")
 
         match action:
             case Action.DEFINE:
@@ -37,12 +39,12 @@ class Orchestrator:
                     step_history[-1] += f", extract words: {words}"
                 else:
                     action=Action.GENERAL
-                    step_history[-1] = f"Orchestrator choose '{action}'"
+                    step_history[-1] = f"Orchestrator chose '{action}'"
             case Action.GENERAL:
                 pass
             case _:
                 action = Action.GENERAL
-                step_history[-1] = f"Orchestrator choose '{action}'"
+                step_history[-1] = f"Orchestrator chose '{action}'"
         
         return {
             **state,
