@@ -3,6 +3,10 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
 
 # ---------- Basic small models ----------
+class Action(str, Enum):
+    DEFINE = "define_words"
+    GENERAL = "general_chat"
+
 class Example(BaseModel):
     en: str = Field(..., description="A full English sentence illustrating this meaning. Must be grammatical and natural.")
     vi: Optional[str] = Field(None, description="Vietnamese translation of the English sentence. If not applicable, leave null.")
@@ -45,10 +49,6 @@ class Meaning(BaseModel):
 
 class ListOfMeanings(BaseModel):
     meanings: List[Meaning] = Field(default_factory=list, min_length=1, description="List of distinct meanings")
-
-# TODO: will be deprecated
-class ListOfWords(BaseModel):
-    words: List[str] = Field(default_factory=list, description="List of distinct words")
 
 class OrchestratorOutput(BaseModel):
     action: Literal["define_words", "general_chat"] = Field(..., description="Next action. Input should be 'define_words', 'general_chat'")

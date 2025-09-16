@@ -16,7 +16,7 @@ class State(TypedDict):
 
     # ---- Intermediate ----
     action: Literal["define_words", "general_chat"]
-    step_history: str
+    step_history: List[str]
     
     words: List[str]
     collected_data: List[str]

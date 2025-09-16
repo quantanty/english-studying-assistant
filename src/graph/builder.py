@@ -1,6 +1,8 @@
 from src.utils.prompt_loader import PromptLoader
 from src.services.llm_client import create_llm
 from src.schemas.state import State
+from src.schemas.models import Action
+
 from src.graph.nodes.orchestrator import Orchestrator
 from src.graph.nodes.word_entry_generator import WordEntryGenerator
 from src.graph.nodes.presenter import Presenter
@@ -28,15 +30,15 @@ def create_graph():
     graph_builder.add_node("presenter", Presenter(llm, presenter_prompt))
     
     graph_builder.add_edge(START, "orchestrator")
-    graph_builder.add_edge("word_entry_generator", "presenter")
+    graph_builder.add_edge("word_entry_generator", "orchestrator")
     graph_builder.add_edge("presenter", END)
 
     graph_builder.add_conditional_edges(
         "orchestrator",
         after_orchestrator,
         {
-            "define_word": "word_entry_generator",
-            "general_chat": "presenter"
+            Action.DEFINE: "word_entry_generator",
+            Action.GENERAL: "presenter"
         }
     )
 
