@@ -3,12 +3,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-def create_llm(**kwargs):
+def create_llm(model_id:str = None, **kwargs):
+    model_id = model_id or "google_genai:gemini-2.0-flash"
     return init_chat_model(
-        "google_genai:gemini-2.0-flash",
+        model_id,
         **kwargs
     )
-
-if __name__ == "__main__":
-    llm = create_llm()
-    print(llm)
