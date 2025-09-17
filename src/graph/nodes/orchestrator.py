@@ -1,55 +1,64 @@
 from src.schemas.state import State
 from src.schemas.models import OrchestratorOutput, Action
 from src.utils.state_utils import get_word_defining_results
+from src.utils.human_in_the_loop import ask_permission
 
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 import logging
 
 logger = logging.getLogger(__name__)
 
 class Orchestrator:
-    def __init__(self, llm, prompt):
+    def __init__(self, llm, observation_template):
         self.llm = llm.with_structured_output(OrchestratorOutput)
-        self.prompt = prompt
+        self.observation_template = observation_template
 
     def __call__(self, state: State) -> State:
-        query = state.get("query", "")
-        if not query:
-            return state
+        messages = state.get("messages", [])
+        if not messages or not isinstance(messages[-1], HumanMessage):
+            return {**state, "action": Action.END}
         
-        node_results = state.get("node_results", "Result from Orchestrator:\n")
-        step_history = state.get("step_history", [])
-        extracted_words = state.get("words", [])
-        word_defining_results = get_word_defining_results(state.get("word_entries", {}))
-        messages = [
-            SystemMessage(content=self.prompt.format(step_history=str(step_history), extracted_words=word_defining_results)),
-            HumanMessage(content=query)
-        ]
-        response = self.llm.invoke(messages)
-        logger.debug(f"Orchestrator llm response: {response}")
+        orchestrator_messages = state.get("orchestrator_messages")
+        orchestrator_observation = state.get("orchestrator_observation", [])
+        if orchestrator_observation:
+            orchestrator_messages.append(HumanMessage(
+                content=self.observation_template.format(observation=str(orchestrator_observation))
+            ))
+
+        logger.debug(orchestrator_messages)
+        response = self.llm.invoke(orchestrator_messages)
+        msg = AIMessage(
+            content=str(response.model_dump_json())
+        )
+        orchestrator_messages.append(msg)
+
+        logger.info(f"Orchestrator llm response: {response}")
 
         action = response.action
+        node_results = state.get("node_results", "")
+        node_results += "Result from Orchestrator:\n"
         node_results += f"Taking '{action}' action.\n"
-        step_history.append(f"Orchestrator chose '{action}'")
 
+        words = []
         match action:
             case Action.DEFINE:
-                if (words:=response.words):
-                    extracted_words.extend(words)
-                    step_history[-1] += f", extract words: {words}"
+                if response.words:
+                    words = response.words
+                    accept = ask_permission(f"The assistant want to retrieve {str(words)}, do you accept?")
+                    if not accept:
+                        action=Action.GENERAL
+                        node_results += "Human didn't accept retrieving, change action to 'general_chat'"
                 else:
                     action=Action.GENERAL
-                    step_history[-1] = f"Orchestrator chose '{action}'"
             case Action.GENERAL:
                 pass
             case _:
-                action = Action.GENERAL
-                step_history[-1] = f"Orchestrator chose '{action}'"
+                action = Action.END
         
         return {
             **state,
             "action": action,
-            "step_history": step_history,
-            "words": extracted_words,
-            "node_results": node_results
+            "words": words,
+            "node_results": node_results,
+            "orchestrator_messages": orchestrator_messages
         }

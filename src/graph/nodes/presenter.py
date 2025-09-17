@@ -12,14 +12,21 @@ class Presenter:
 
     def __call__(self, state: State) -> State:
         node_results = state.get("node_results", "Results not found")
-        query = state.get("query", "")
-        word_entries = str(state.get("word_entries", ""))
-        if not query:
-            response = "Please provide a query"
-            return {**state, "response": response}
-        messages = [
-            SystemMessage(self.prompt.format(node_results=node_results, word_entries=word_entries)),
-            HumanMessage(query)
+        messages = state.get("messages", [])
+        if not messages or not isinstance(messages[-1], HumanMessage):
+            return state
+        
+        word_entries = state.get("word_entries", "")
+        words_needed = state.get("words", [])
+        words_info = "\n".join([
+            str(word_entries.get(word, None)) or f"Failed to retrieve definition of '{word}'"
+            for word in words_needed
+        ])
+
+        feed = [
+            SystemMessage(self.prompt.format(node_results=node_results, word_entries=words_info)),
+            *messages
         ]
-        response = self.llm.invoke(messages)
-        return {**state, "response": response}
+        logger.debug(str(feed))
+        message = self.llm.invoke(feed)
+        return {**state, "messages": [message]}

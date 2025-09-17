@@ -6,6 +6,7 @@ from enum import Enum
 class Action(str, Enum):
     DEFINE = "define_words"
     GENERAL = "general_chat"
+    END = "end_session"
 
 class Example(BaseModel):
     en: str = Field(..., description="A full English sentence illustrating this meaning. Must be grammatical and natural.")

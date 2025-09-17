@@ -3,33 +3,41 @@ from src.services.llm_client import create_llm
 from src.schemas.state import State
 from src.schemas.models import Action
 
+from src.graph.nodes.preparing import preparing
 from src.graph.nodes.orchestrator import Orchestrator
 from src.graph.nodes.word_entry_generator import WordEntryGenerator
 from src.graph.nodes.presenter import Presenter
-from src.graph.edges.decision import after_orchestrator
+from src.graph.edges.decision import after_orchestrator, after_preparation
 
 from langgraph.graph import StateGraph, START, END
 import logging
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-
-def create_graph():
-    orchestrator_prompt = PromptLoader.get("simple_prompt.system_prompt.orchestrator")
+def create_graph(llm=None, checkpointer=None):
+    orchestrator_system_prompt = PromptLoader.get("orchestrator.system")
+    orchestrator_user_template = PromptLoader.get("orchestrator.user")
+    orchestrator_observation_template = PromptLoader.get("orchestrator.observation")
     word_entry_generator_prompt = PromptLoader.get("simple_prompt.system_prompt.dictionary")
     presenter_prompt = PromptLoader.get("simple_prompt.system_prompt.presenter")
 
-    llm = create_llm()
+    llm = llm or create_llm()
 
     graph_builder = StateGraph(State)
 
-    graph_builder.add_node("orchestrator", Orchestrator(llm, orchestrator_prompt))
+    graph_builder.add_node("preparing", preparing(orchestrator_system_prompt, orchestrator_user_template))
+    graph_builder.add_node("orchestrator", Orchestrator(llm, orchestrator_observation_template))
     graph_builder.add_node("word_entry_generator", WordEntryGenerator(llm, word_entry_generator_prompt))
     graph_builder.add_node("presenter", Presenter(llm, presenter_prompt))
     
-    graph_builder.add_edge(START, "orchestrator")
+    graph_builder.add_edge(START, "preparing")
+    graph_builder.add_conditional_edges(
+        "preparing",
+        after_preparation,
+        {
+            "success": "orchestrator",
+            "error": END
+        }
+    )
+
     graph_builder.add_edge("word_entry_generator", "orchestrator")
     graph_builder.add_edge("presenter", END)
 
@@ -38,8 +46,9 @@ def create_graph():
         after_orchestrator,
         {
             Action.DEFINE: "word_entry_generator",
-            Action.GENERAL: "presenter"
+            Action.GENERAL: "presenter",
+            Action.END: END
         }
     )
 
-    return graph_builder.compile()
+    return graph_builder.compile(checkpointer)
