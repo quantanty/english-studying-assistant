@@ -56,6 +56,10 @@ class OrchestratorOutput(BaseModel):
     words: Optional[List[str]] = Field(None, description="English words that user want to learn, extracted from user's query.")
     # orchestrator_notes: Optional[str] = Field(None, "")
 
+class IntentClassifierOutput(BaseModel):
+    reasoning: str = Field(..., description="Thinking out loud")
+    intent: Literal["learn_words", "general_chat"] = Field(..., "User's intent")
+
 # ---------- Top-level model ----------
 class WordEntry(BaseModel):
     phonetic: Optional[str] = Field(None, description="IPA transcription (e.g., /rʌn/), not arbitrary spelling. Always provide American version when possible.")
