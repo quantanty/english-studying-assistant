@@ -7,6 +7,8 @@ from src.graph.nodes.preparing import preparing
 from src.graph.nodes.orchestrator import Orchestrator
 from src.graph.nodes.word_entry_generator import WordEntryGenerator
 from src.graph.nodes.presenter import Presenter
+from src.graph.nodes.intent_classifier import IntentClassifier
+from src.graph.nodes.word_extractor import WordExtractor
 from src.graph.edges.decision import after_orchestrator, after_preparation
 
 from langgraph.graph import StateGraph, START, END
@@ -27,17 +29,22 @@ def create_graph(llm=None, checkpointer=None):
     graph_builder.add_node("orchestrator", Orchestrator(llm, orchestrator_observation_template))
     graph_builder.add_node("word_entry_generator", WordEntryGenerator(llm, word_entry_generator_prompt))
     graph_builder.add_node("presenter", Presenter(llm, presenter_prompt))
+    #TODO: write prompt for IntentClassifier, WordExtractor
+    graph_builder.add_node("intent_classifier", IntentClassifier(llm))
+    graph_builder.add_node("word_extractor", WordExtractor(llm))
     
     graph_builder.add_edge(START, "preparing")
     graph_builder.add_conditional_edges(
         "preparing",
         after_preparation,
         {
-            "success": "orchestrator",
+            "success": "intent_classifier",
             "error": END
         }
     )
 
+    graph_builder.add_edge("intent_classifier", "orchestrator")
+    graph_builder.add_edge("word_extractor", "orchestrator")
     graph_builder.add_edge("word_entry_generator", "orchestrator")
     graph_builder.add_edge("presenter", END)
 
@@ -45,9 +52,10 @@ def create_graph(llm=None, checkpointer=None):
         "orchestrator",
         after_orchestrator,
         {
-            Action.DEFINE: "word_entry_generator",
-            Action.GENERAL: "presenter",
-            Action.END: END
+            "extract_words": "word_extractor",
+            "define_words": "word_entry_generator",
+            "general_chat": "presenter",
+            "end_session": END
         }
     )
 

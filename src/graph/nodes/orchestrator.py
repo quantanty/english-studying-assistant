@@ -13,6 +13,8 @@ class Orchestrator:
         self.llm = llm.with_structured_output(OrchestratorOutput)
         self.observation_template = observation_template
 
+    # TODO: rewrite Orchestrator logic
+    # add new action: extract_words
     def __call__(self, state: State) -> State:
         messages = state.get("messages", [])
         if not messages or not isinstance(messages[-1], HumanMessage):

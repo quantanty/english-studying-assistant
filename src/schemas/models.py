@@ -4,6 +4,7 @@ from enum import Enum
 
 # ---------- Basic small models ----------
 class Action(str, Enum):
+    EXTRACT = "extract_words"
     DEFINE = "define_words"
     GENERAL = "general_chat"
     END = "end_session"
@@ -58,7 +59,7 @@ class OrchestratorOutput(BaseModel):
 
 class IntentClassifierOutput(BaseModel):
     reasoning: str = Field(..., description="Thinking out loud")
-    intent: Literal["learn_words", "general_chat"] = Field(..., "User's intent")
+    intent: Literal["learn_words", "general_chat"] = Field(..., description="User's intent")
 
 # ---------- Top-level model ----------
 class WordEntry(BaseModel):
