@@ -9,6 +9,8 @@ from src.graph.nodes.word_entry_generator import WordEntryGenerator
 from src.graph.nodes.presenter import Presenter
 from src.graph.nodes.intent_classifier import IntentClassifier
 from src.graph.nodes.word_extractor import WordExtractor
+from src.graph.nodes.word_retriever import WordRetriever
+from src.graph.nodes.quiz_generator import QuizGenerator
 from src.graph.edges.decision import after_orchestrator, after_preparation
 
 from langgraph.graph import StateGraph, START, END
@@ -29,9 +31,11 @@ def create_graph(llm=None, checkpointer=None):
     graph_builder.add_node("orchestrator", Orchestrator(llm, orchestrator_observation_template))
     graph_builder.add_node("word_entry_generator", WordEntryGenerator(llm, word_entry_generator_prompt))
     graph_builder.add_node("presenter", Presenter(llm, presenter_prompt))
-    #TODO: write prompt for IntentClassifier, WordExtractor
+    #TODO: write prompt for IntentClassifier, WordExtractor, WordRetriever, QuizGenerator
     graph_builder.add_node("intent_classifier", IntentClassifier(llm))
     graph_builder.add_node("word_extractor", WordExtractor(llm))
+    graph_builder.add_node("word_retriever", WordRetriever(llm))
+    graph_builder.add_node("quiz_generator", QuizGenerator(llm))
     
     graph_builder.add_edge(START, "preparing")
     graph_builder.add_conditional_edges(
@@ -45,7 +49,9 @@ def create_graph(llm=None, checkpointer=None):
 
     graph_builder.add_edge("intent_classifier", "orchestrator")
     graph_builder.add_edge("word_extractor", "orchestrator")
+    graph_builder.add_edge("word_retriever", "word_entry_generator")
     graph_builder.add_edge("word_entry_generator", "orchestrator")
+    graph_builder.add_edge("quiz_generator", "orchestrator")
     graph_builder.add_edge("presenter", END)
 
     graph_builder.add_conditional_edges(
@@ -53,7 +59,8 @@ def create_graph(llm=None, checkpointer=None):
         after_orchestrator,
         {
             "extract_words": "word_extractor",
-            "define_words": "word_entry_generator",
+            "define_words": "word_retriever",
+            "generate_quizzes": "quiz_generator",
             "general_chat": "presenter",
             "end_session": END
         }
