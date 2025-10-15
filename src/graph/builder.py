@@ -17,6 +17,7 @@ from langgraph.graph import StateGraph, START, END
 import logging
 
 def create_graph(llm=None, checkpointer=None):
+    intent_classifier_system_prompt = PromptLoader.get("intent_classifier.system")
     orchestrator_system_prompt = PromptLoader.get("orchestrator.system")
     orchestrator_user_template = PromptLoader.get("orchestrator.user")
     orchestrator_observation_template = PromptLoader.get("orchestrator.observation")
@@ -32,7 +33,7 @@ def create_graph(llm=None, checkpointer=None):
     graph_builder.add_node("word_entry_generator", WordEntryGenerator(llm, word_entry_generator_prompt))
     graph_builder.add_node("presenter", Presenter(llm, presenter_prompt))
     #TODO: write prompt for IntentClassifier, WordExtractor, WordRetriever, QuizGenerator
-    graph_builder.add_node("intent_classifier", IntentClassifier(llm))
+    graph_builder.add_node("intent_classifier", IntentClassifier(llm, intent_classifier_system_prompt))
     graph_builder.add_node("word_extractor", WordExtractor(llm))
     graph_builder.add_node("word_retriever", WordRetriever(llm))
     graph_builder.add_node("quiz_generator", QuizGenerator(llm))

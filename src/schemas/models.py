@@ -58,8 +58,18 @@ class OrchestratorOutput(BaseModel):
     # orchestrator_notes: Optional[str] = Field(None, "")
 
 class IntentClassifierOutput(BaseModel):
-    reasoning: str = Field(..., description="Thinking out loud")
-    intent: Literal["learn_words", "general_chat"] = Field(..., description="User's intent")
+    reasoning: str = Field(
+        ...,
+        description="A brief, internal, step-by-step thought process leading to the final 'intent' decision. This is for debugging and inspection, not for end-user display."
+    )
+    intent: Literal["learn_words", "general_chat"] = Field(
+        ...,
+        description=(
+            "The final classified intent of the user's message. "
+            "Use 'learn_words' when the user explicitly asks to learn, review, or practice vocabulary. "
+            "Use 'general_chat' for any other casual conversation, greetings, or non-learning specific queries."
+        )
+    )
 
 # ---------- Top-level model ----------
 class WordEntry(BaseModel):

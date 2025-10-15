@@ -20,6 +20,9 @@ class State(TypedDict):
     window_index: int
     summary: str
 
+    # ---- IntentClassifier ____
+    intent: Literal["learn_words", "general_chat"]
+
     # ---- Orchestrator ----
     preparation_result: str
     orchestrator_messages: List[AnyMessage]
