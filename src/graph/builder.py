@@ -11,6 +11,7 @@ from src.graph.nodes.intent_classifier import IntentClassifier
 from src.graph.nodes.word_extractor import WordExtractor
 from src.graph.nodes.word_retriever import WordRetriever
 from src.graph.nodes.quiz_generator import QuizGenerator
+from src.graph.nodes.planner import Planner
 from src.graph.edges.decision import after_orchestrator, after_preparation
 
 from langgraph.graph import StateGraph, START, END
@@ -18,6 +19,8 @@ import logging
 
 def create_graph(llm=None, checkpointer=None):
     intent_classifier_system_prompt = PromptLoader.get("intent_classifier.system")
+    planner_system_prompt_1 = PromptLoader.get("planner.system.phase_1")
+    planner_system_prompt_2 = PromptLoader.get("planner.system.phase_2")
     orchestrator_system_prompt = PromptLoader.get("orchestrator.system")
     orchestrator_user_template = PromptLoader.get("orchestrator.user")
     orchestrator_observation_template = PromptLoader.get("orchestrator.observation")
@@ -32,8 +35,9 @@ def create_graph(llm=None, checkpointer=None):
     graph_builder.add_node("orchestrator", Orchestrator(llm, orchestrator_observation_template))
     graph_builder.add_node("word_entry_generator", WordEntryGenerator(llm, word_entry_generator_prompt))
     graph_builder.add_node("presenter", Presenter(llm, presenter_prompt))
-    #TODO: write prompt for IntentClassifier, WordExtractor, WordRetriever, QuizGenerator
+    #TODO: write prompt for Planner, WordExtractor, WordRetriever, QuizGenerator
     graph_builder.add_node("intent_classifier", IntentClassifier(llm, intent_classifier_system_prompt))
+    graph_builder.add_node("planner", Planner(llm, planner_system_prompt_1, planner_system_prompt_2))
     graph_builder.add_node("word_extractor", WordExtractor(llm))
     graph_builder.add_node("word_retriever", WordRetriever(llm))
     graph_builder.add_node("quiz_generator", QuizGenerator(llm))
@@ -48,7 +52,8 @@ def create_graph(llm=None, checkpointer=None):
         }
     )
 
-    graph_builder.add_edge("intent_classifier", "orchestrator")
+    graph_builder.add_edge("intent_classifier", "planner")
+    graph_builder.add_edge("planner", "orchestrator")
     graph_builder.add_edge("word_extractor", "orchestrator")
     graph_builder.add_edge("word_retriever", "word_entry_generator")
     graph_builder.add_edge("word_entry_generator", "orchestrator")

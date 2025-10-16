@@ -71,6 +71,14 @@ class IntentClassifierOutput(BaseModel):
         )
     )
 
+class PlanStep(BaseModel):
+    agent: str
+    purpose: str
+
+
+class PlannerOutput(BaseModel):
+    steps: List[PlanStep]
+
 # ---------- Top-level model ----------
 class WordEntry(BaseModel):
     phonetic: Optional[str] = Field(None, description="IPA transcription (e.g., /rʌn/), not arbitrary spelling. Always provide American version when possible.")
