@@ -53,21 +53,20 @@ system: |-
   - `next_node`: the name of the next agent to run, or "END" if the workflow is complete.
   - `reason`: a concise explanation of why this next node is chosen.
 
-  Example:
-  ```json
+  <example id=1>
   {
     "reasoning": "This is the first step in the plan: extracting words from the user's input."
     "next_node": "WordExtractor",
   }
-  ```
+  </example>
 
   Or when ready to present:
-  ```json
+  <example id=2>
   {
     "reasoning": "All information is ready, now answer to user."
     "next_node": "Presenter"
   }
-  ```
+  </example>
   </output_format>
   
   Stay structured, reliable, and logical.
@@ -75,15 +74,16 @@ system: |-
 
 
 user:
-  template: |-
-    <chat_log>
-    {conversation}
-    </chat_log>
-    The user’s current message represents their latest request in the session.
+  first:
+    template: |-
+      <user_intent>{user_intent}</user_intent>
+      <plan>{plan}</plan>
 
-
-observation:
-  template: |-
-    <observation>
-    {observation}
-    </observation>
+  after:
+    template: |-
+      <action step={step} type="{type}"/>
+      <step_result success="{success}">
+        <observation>
+      {observation}
+        </observation>
+      </step_result>

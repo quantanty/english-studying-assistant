@@ -1,6 +1,7 @@
 from src.schemas.state import State
 
 from langchain_core.messages import HumanMessage, AIMessage
+import textwrap
 
 def get_conversation_string(state: State):
     messages = state["messages"]
@@ -12,3 +13,11 @@ def get_conversation_string(state: State):
             conversation_string += f"Assistant: {msg.content}\n"
     
     return conversation_string
+
+def format_indent(content: str, indent: int) -> str:
+    if not content:
+        return ""
+    
+    prefix = " " * indent
+    
+    return textwrap.indent(content, prefix)
