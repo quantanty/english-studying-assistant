@@ -52,10 +52,7 @@ class Meaning(BaseModel):
 class ListOfMeanings(BaseModel):
     meanings: List[Meaning] = Field(default_factory=list, min_length=1, description="List of distinct meanings")
 
-class OrchestratorOutput(BaseModel):
-    action: Literal["define_words", "general_chat"] = Field(..., description="Next action. Input should be 'define_words', 'general_chat'")
-    words: Optional[List[str]] = Field(None, description="English words that user want to learn, extracted from user's query.")
-    # orchestrator_notes: Optional[str] = Field(None, "")
+    
 
 class IntentClassifierOutput(BaseModel):
     reasoning: str = Field(
@@ -64,20 +61,21 @@ class IntentClassifierOutput(BaseModel):
     )
     intent: Literal["learn_words", "general_chat"] = Field(
         ...,
-        description=(
-            "The final classified intent of the user's message. "
-            "Use 'learn_words' when the user explicitly asks to learn, review, or practice vocabulary. "
-            "Use 'general_chat' for any other casual conversation, greetings, or non-learning specific queries."
-        )
+        description=("The final classified intent of the user's message.")
     )
-
+    
 class PlanStep(BaseModel):
     agent: str
     purpose: str
 
-
 class PlannerOutput(BaseModel):
     steps: List[PlanStep]
+
+class OrchestratorOutput(BaseModel):
+    reasoning: str = Field(..., description="")
+    next_node: Literal[
+        "extract_words", "define_words", "generate_quizzes", "end_session"
+    ] = Field(..., description="")
 
 # ---------- Top-level model ----------
 class WordEntry(BaseModel):
