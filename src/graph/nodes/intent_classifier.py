@@ -7,9 +7,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 class IntentClassifier:
-    def __init__(self, llm, system_prompt):
+    def __init__(self, llm, system, user):
         self.llm = llm.with_structured_output(IntentClassifierOutput)
-        self.system_prompt = system_prompt
+        
+        # prompt
+        self.system = system
+        self.user = user
 
     def __call__(self, state: State) -> State:
         #TODO: get message from state

@@ -18,12 +18,16 @@ from langgraph.graph import StateGraph, START, END
 import logging
 
 def create_graph(llm=None, checkpointer=None):
-    intent_classifier_system_prompt = PromptLoader.get("intent_classifier.system")
-    planner_system_prompt_1 = PromptLoader.get("planner.system.phase_1")
-    planner_system_prompt_2 = PromptLoader.get("planner.system.phase_2")
-    orchestrator_system_prompt = PromptLoader.get("orchestrator.system")
-    orchestrator_user_template = PromptLoader.get("orchestrator.user")
-    orchestrator_observation_template = PromptLoader.get("orchestrator.observation")
+    intent_classifier_system = PromptLoader.get("intent_classifier.system")
+    intent_classifier_user = PromptLoader.get("intent_classifier.user")
+
+    planner_system_1 = PromptLoader.get("planner.system.phase_1")
+    planner_system_2 = PromptLoader.get("planner.system.phase_2")
+
+    orchestrator_system = PromptLoader.get("orchestrator.system")
+    orchestrator_user_1 = PromptLoader.get("orchestrator.user.first")
+    orchestrator_user_2 = PromptLoader.get("orchestrator.user.after")
+
     word_entry_generator_prompt = PromptLoader.get("simple_prompt.system_prompt.dictionary")
     presenter_prompt = PromptLoader.get("simple_prompt.system_prompt.presenter")
 
@@ -31,26 +35,18 @@ def create_graph(llm=None, checkpointer=None):
 
     graph_builder = StateGraph(State)
 
-    graph_builder.add_node("preparing", preparing(orchestrator_system_prompt, orchestrator_user_template))
-    graph_builder.add_node("orchestrator", Orchestrator(llm, orchestrator_observation_template))
+    # graph_builder.add_node("preparing", preparing(orchestrator_system_prompt, orchestrator_user_template))
+    graph_builder.add_node("intent_classifier", IntentClassifier(llm, intent_classifier_system, intent_classifier_user))
+    graph_builder.add_node("planner", Planner(llm, planner_system_1, planner_system_2))
+    graph_builder.add_node("orchestrator", Orchestrator(llm, orchestrator_system, orchestrator_user_1, orchestrator_user_2))
     graph_builder.add_node("word_entry_generator", WordEntryGenerator(llm, word_entry_generator_prompt))
     graph_builder.add_node("presenter", Presenter(llm, presenter_prompt))
     #TODO: write prompt for Planner, WordExtractor, WordRetriever, QuizGenerator
-    graph_builder.add_node("intent_classifier", IntentClassifier(llm, intent_classifier_system_prompt))
-    graph_builder.add_node("planner", Planner(llm, planner_system_prompt_1, planner_system_prompt_2))
     graph_builder.add_node("word_extractor", WordExtractor(llm))
     graph_builder.add_node("word_retriever", WordRetriever(llm))
     graph_builder.add_node("quiz_generator", QuizGenerator(llm))
     
-    graph_builder.add_edge(START, "preparing")
-    graph_builder.add_conditional_edges(
-        "preparing",
-        after_preparation,
-        {
-            "success": "intent_classifier",
-            "error": END
-        }
-    )
+    graph_builder.add_edge(START, "intent_classifier")
 
     graph_builder.add_edge("intent_classifier", "planner")
     graph_builder.add_edge("planner", "orchestrator")
@@ -67,8 +63,8 @@ def create_graph(llm=None, checkpointer=None):
             "extract_words": "word_extractor",
             "define_words": "word_retriever",
             "generate_quizzes": "quiz_generator",
-            "general_chat": "presenter",
-            "end_session": END
+            "present": "presenter",
+            "end": END
         }
     )
 

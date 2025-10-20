@@ -9,9 +9,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Orchestrator:
-    def __init__(self, llm, observation_template):
+    def __init__(self, llm, system, user_1, user_2):
         self.llm = llm.with_structured_output(OrchestratorOutput)
-        self.observation_template = observation_template
+        
+        # prompt
+        self.system = system
+        self.user_1 = user_1
+        self.user_2 = user_2
 
     # TODO: rewrite Orchestrator logic
     # add new action: extract_words
