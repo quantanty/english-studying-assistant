@@ -23,11 +23,11 @@ system: |-
   </objectives>
 
   <available_actions>
-  - "extract_words": 
-  - "define_words":
-  - "generate_quizzes":
-  - "present": answer user's message
-  - "end": 
+  - "extract_words": extract English words that user wants to learn from user's query
+  - "define_words": define English words so that assistant can generate better answer.
+  - "generate_quizzes": generate quizzes
+  - "present": generate reply message
+  - "end": if something went wrong, end the workflow for safety reasons.
   </available_actions>
 
   <execution_rules>

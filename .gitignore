@@ -1,8 +1,8 @@
-#Ignore env containing secrets
+# Ignore env containing secrets
 .env
 .venv
 
-#Ignore Virtual Env
+# Ignore Virtual Env
 env/
 venv/
 .venv/
@@ -12,14 +12,17 @@ ENV/
 env.bak/
 venv.bak/
 
-#Ignore generated outputs
+# Ignore generated outputs
 outputs/
 *.lock
 dist/
 src.egg-info/
 
-#Ignore pycache
+# Ignore pycache
 **/__pycache__/
+
+# Ignore editor configs
+.vscode/
 
 # Log files
 logs/

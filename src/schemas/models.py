@@ -65,7 +65,7 @@ class IntentClassifierOutput(BaseModel):
     )
     
 class PlanStep(BaseModel):
-    agent: str
+    action: str
     purpose: str
 
 class PlannerOutput(BaseModel):
@@ -73,8 +73,8 @@ class PlannerOutput(BaseModel):
 
 class OrchestratorOutput(BaseModel):
     reasoning: str = Field(..., description="")
-    next_node: Literal[
-        "extract_words", "define_words", "generate_quizzes", "end_session"
+    action: Literal[
+        "extract_words", "define_words", "generate_quizzes", "present", "end"
     ] = Field(..., description="")
 
 # ---------- Top-level model ----------

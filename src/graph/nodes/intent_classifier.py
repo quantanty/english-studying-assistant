@@ -1,8 +1,8 @@
 from src.schemas.state import State
 from src.schemas.models import IntentClassifierOutput
+from src.utils.context import get_conversation_string
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from langgraph.types import Command, interrupt
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,16 +16,11 @@ class IntentClassifier:
         self.user = user
 
     def __call__(self, state: State) -> State:
-        #TODO: get message from state
-        #TODO: generate output
-        messages = state.get("messages", [])
-        # query = messages[-1]
+        conversation = get_conversation_string(state)
         
-        feed = self._construct_feed(messages)
+        feed = self._construct_feed(conversation)
         response = self.llm.invoke(feed)
-        logger.debug("Intent classifier response:\n" + str(response))
-        human_response = interrupt("interrupt from IntentClassifier")
-        print(human_response["data"])
+
         return {"intent": response.intent}
     
     def _construct_feed(self, messages):
