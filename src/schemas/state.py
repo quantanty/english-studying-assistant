@@ -1,4 +1,4 @@
-from .models import Meaning, WordEntry, QuizQuestion
+from .models import Meaning, WordEntry, QuizQuestion, PlanStep
 
 from langgraph.graph.message import add_messages
 from langchain_core.messages import AnyMessage
@@ -20,16 +20,12 @@ class State(TypedDict):
     window_index: int
     summary: str
 
-    # ---- IntentClassifier ____
+    # ---- Intermediate steps ____
     intent: Literal["learn_words", "general_chat"]
-
-    # ---- Orchestrator ----
-    preparation_result: str
+    plan: List[PlanStep]
     orchestrator_messages: List[AnyMessage]
     orchestrator_observation: List[str]
     action: Literal["define_words", "general_chat"]
-    
-    # ---- WordEntryGenerator ----
     words: List[str]
     collected_data: List[str]
     word_entries: Dict[str, WordEntryState]
