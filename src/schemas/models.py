@@ -77,6 +77,9 @@ class OrchestratorOutput(BaseModel):
         "extract_words", "define_words", "generate_quizzes", "present", "end"
     ] = Field(..., description="")
 
+class WordExtractorOutput(BaseModel):
+    words: List[str] = Field(default_factory=list, description="English words to be defined.")
+
 # ---------- Top-level model ----------
 class WordEntry(BaseModel):
     phonetic: Optional[str] = Field(None, description="IPA transcription (e.g., /rʌn/), not arbitrary spelling. Always provide American version when possible.")
