@@ -14,6 +14,13 @@ class WordEntryState(TypedDict):
     metadata: Optional[Dict]
     result: Literal["success", "error"]
 
+class StepState(TypedDict):
+    action_type: Literal[
+        "extract_words", "define_words", "generate_quizzes", "present", "end"
+    ]
+    success: bool
+    observation: str
+
 class State(TypedDict):
     # ---- Conversation ----
     messages: Annotated[list[AnyMessage], add_messages]
@@ -25,8 +32,9 @@ class State(TypedDict):
     plan: List[PlanStep]
     orchestrator_messages: List[AnyMessage]
     orchestrator_observation: List[str]
-    action: Literal["define_words", "general_chat"]
+    step_state: StepState
     words: List[str]
+    words_to_define: List[str]
     collected_data: List[str]
     word_entries: Dict[str, WordEntryState]
     node_results: str

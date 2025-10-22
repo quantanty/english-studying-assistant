@@ -17,6 +17,10 @@ class WordExtractor:
         feed = self._construct_feed(query)
         response = self.llm.invoke(feed)
 
+        return {
+            "words_to_defines": response.words
+        }
+
 
     def _construct_feed(self, query):
         feed = [

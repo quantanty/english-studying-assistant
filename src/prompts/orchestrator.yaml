@@ -68,14 +68,14 @@ system: |-
 
 
 user:
-  first:
+  start:
     template: |-
       <user_intent>{user_intent}</user_intent>
-      <plan>{plan}</plan>
+      <plan>{plan}</plans>
 
-  after:
+  next:
     template: |-
-      <action step={step} type="{type}"/>
+      <action type="{type}"/>
       <step_result success="{success}">
         <observation>
       {observation}

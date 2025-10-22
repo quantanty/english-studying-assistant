@@ -75,7 +75,7 @@ class OrchestratorOutput(BaseModel):
     reasoning: str = Field(..., description="")
     action: Literal[
         "extract_words", "define_words", "generate_quizzes", "present", "end"
-    ] = Field(..., description="")
+    ] = Field(..., description="action types")
 
 class WordExtractorOutput(BaseModel):
     words: List[str] = Field(default_factory=list, description="English words to be defined.")

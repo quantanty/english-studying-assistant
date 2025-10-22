@@ -1,4 +1,4 @@
-from src.schemas.state import State
+from src.schemas.state import State, StepState
 from src.schemas.models import OrchestratorOutput, Action
 from src.utils.state_utils import get_word_defining_results
 from src.utils.human_in_the_loop import ask_permission
@@ -14,57 +14,61 @@ class Orchestrator:
         
         # prompt
         self.system = system
-        self.user_1 = user_1
-        self.user_2 = user_2
+        self.user_1 = user_1 # start
+        self.user_2 = user_2 # next
+        self.feed = []
 
-    # TODO: rewrite Orchestrator logic
-    # add new action: extract_words
     def __call__(self, state: State) -> State:
-        messages = state.get("messages", [])
-        if not messages or not isinstance(messages[-1], HumanMessage):
-            return {**state, "action": Action.END}
+        if not self.feed:
+            self._construct_feed_start(state)
+        else:
+            self._construct_observation_string(state)
+            self._construct_feed_start(state)
         
-        orchestrator_messages = state.get("orchestrator_messages")
-        orchestrator_observation = state.get("orchestrator_observation", [])
-        if orchestrator_observation:
-            orchestrator_messages.append(HumanMessage(
-                content=self.observation_template.format(observation=str(orchestrator_observation))
-            ))
-
-        logger.debug(orchestrator_messages)
-        response = self.llm.invoke(orchestrator_messages)
-        msg = AIMessage(
-            content=str(response.model_dump_json())
+        response = self.llm.invoke(self.feed)
+        step_state = StepState(
+            action_type=response.action
         )
-        orchestrator_messages.append(msg)
 
-        logger.info(f"Orchestrator llm response: {response}")
-
-        action = response.action
-        node_results = state.get("node_results", "")
-        node_results += "Result from Orchestrator:\n"
-        node_results += f"Taking '{action}' action.\n"
-
-        words = []
-        match action:
-            case Action.DEFINE:
-                if response.words:
-                    words = response.words
-                    accept = ask_permission(f"The assistant want to retrieve {str(words)}, do you accept?")
-                    if not accept:
-                        action=Action.GENERAL
-                        node_results += "Human didn't accept retrieving, change action to 'general_chat'"
-                else:
-                    action=Action.GENERAL
-            case Action.GENERAL:
-                pass
-            case _:
-                action = Action.END
-        
         return {
-            **state,
-            "action": action,
-            "words": words,
-            "node_results": node_results,
-            "orchestrator_messages": orchestrator_messages
+            "step_state": step_state
         }
+
+    def reset_feed(self):
+        self.feed = []
+
+    def _construct_observation_string(state: State):
+        observation_string = ""
+
+        step_state = state.get("step_state")
+        action_type = step_state.get("action_type")
+        
+        if action_type == "extract_words":
+            ...
+        elif action_type == "define_words":
+            ...
+        elif action_type == "generate_quizzes":
+            ...
+
+        state["step_state"]["observation"] = observation_string
+
+    def _construct_feed_start(self, state: State):
+        intent = state.get("intent")
+        plan = state.get("plan")
+        self.feed = [
+            SystemMessage(content=self.system),
+            HumanMessage(content=self.user_1.format(intent=intent, plan=plan))
+        ]
+    
+    def _construct_feed_next(self, state: State, step: int):
+        step_state = state.get("step_state")
+        type = step_state.get("action_type")
+        success = step_state.get("success")
+        observation = step_state.get("observation")
+        self.feed.append(HumanMessage(
+            content=self.user_2.format(
+                type=type,
+                success=success,
+                observation=observation
+            )
+        ))
