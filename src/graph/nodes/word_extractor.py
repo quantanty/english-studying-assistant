@@ -13,12 +13,12 @@ class WordExtractor:
         self.user = user
 
     def __call__(self, state: State) -> State:
-        query = state.get("messages")[-1]
+        query = state.get("messages")[-1].content
         feed = self._construct_feed(query)
         response = self.llm.invoke(feed)
 
         return {
-            "words_to_defines": response.words
+            "words_to_define": response.words
         }
 
 
@@ -27,4 +27,4 @@ class WordExtractor:
             SystemMessage(content=self.system),
             HumanMessage(content=self.user.format(query=query))
         ]
-        return query
+        return feed

@@ -70,7 +70,7 @@ system: |-
 user:
   start:
     template: |-
-      <user_intent>{user_intent}</user_intent>
+      <user_intent>{intent}</user_intent>
       <plan>{plan}</plans>
 
   next:

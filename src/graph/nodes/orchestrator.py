@@ -23,7 +23,7 @@ class Orchestrator:
             self._construct_feed_start(state)
         else:
             self._construct_observation_string(state)
-            self._construct_feed_start(state)
+            self._construct_feed_next(state)
         
         response = self.llm.invoke(self.feed)
         step_state = StepState(
@@ -37,14 +37,15 @@ class Orchestrator:
     def reset_feed(self):
         self.feed = []
 
-    def _construct_observation_string(state: State):
+    def _construct_observation_string(self, state: State):
         observation_string = ""
 
         step_state = state.get("step_state")
         action_type = step_state.get("action_type")
         
         if action_type == "extract_words":
-            ...
+            words_to_define = state.get("words_to_define")
+            observation_string += f"words to define: {words_to_define}"
         elif action_type == "define_words":
             ...
         elif action_type == "generate_quizzes":
@@ -60,7 +61,7 @@ class Orchestrator:
             HumanMessage(content=self.user_1.format(intent=intent, plan=plan))
         ]
     
-    def _construct_feed_next(self, state: State, step: int):
+    def _construct_feed_next(self, state: State):
         step_state = state.get("step_state")
         type = step_state.get("action_type")
         success = step_state.get("success")
