@@ -16,7 +16,7 @@ system: |-
   </constraints>
 
 user : |-
-  <word>...</word>
+  <word>{word}</word>
   <retrieved_information>
   {retrieved_information}
   </retrieved_information>

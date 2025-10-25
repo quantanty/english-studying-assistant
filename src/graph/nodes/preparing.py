@@ -15,6 +15,7 @@ def preparing(orchestrator: Orchestrator):
             return {"preparation_result": "error"}
         
         return {
-            "preparation_result": "success"
+            "preparation_result": "success",
+            "words_to_define": []
         }
     return preparing_

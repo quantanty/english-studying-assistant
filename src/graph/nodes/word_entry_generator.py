@@ -7,40 +7,39 @@ import logging
 logger = logging.getLogger(__name__)
 
 class WordEntryGenerator:
-    def __init__(self, llm, prompt):
+    def __init__(self, llm, system, user):
         self.llm = llm.with_structured_output(WordEntry)#, retry=True, max_retries=3)
-        self.prompt = prompt
+        self.system = system
+        self.user = user
 
     def __call__(self, state: State) -> State:
-        words = state["words"]
-        messages = [
-            SystemMessage(content=self.prompt)
-        ]
-        word_entries = state.get("word_entries", {})
-        node_results: str = state.get("node_results", "")
-        node_results += "Results from WordEntryGenerator:\n"
-        report = "Results from WordEntryGenerator:\n"
-        orchestrator_observation = state.get("orchestrator_observation", [])
+        words_to_define = state.get("words_to_define", [])
+        collected_data = state.get("collected_data", {})
 
-        for word in words:
-            entry = word_entries.get(word, None)
-            if entry and entry.get("result", "error") == "success":
-                continue
-            logger.debug(f"processing the word '{word}'")
+        if not words_to_define or not collected_data:
+            return None
+        
+        word_entries = state.get("word_entries", {})
+
+        for word in words_to_define:
+            feed = self._construct_feed(word, collected_data)
             try:
-                entry: WordEntry = self.llm.invoke(messages + [HumanMessage(content=word)])
-                word_entries[word] = WordEntryState(word=word, result="success", **entry.model_dump())
-                node_results += f"Successfully processed the word '{word}'.\n"
-                report += f"Successfully processed the word '{word}'.\n"
+                response = self.llm.invoke(feed)
+                word_entries[word] = WordEntryState(
+                    word=word,
+                    result="success",
+                    **response.model_dump()
+                )
             except Exception as e:
                 word_entries[word] = WordEntryState(result="error")
-                node_results += f"Error while processing the word '{word}': {e}"
-                report += f"Error while processing the word '{word}': {e}"
 
-        orchestrator_observation.append(report)
         return {
-            **state,
-            "word_entries": word_entries,
-            "node_results": node_results,
-            "orchestrator_observation": orchestrator_observation
+            "word_entries": word_entries
         }
+
+    def _construct_feed(self, word: str, collected_data: dict):
+        feed = [
+            SystemMessage(content=self.system),
+            HumanMessage(content=self.user.format(word=word, retrieved_information=collected_data))
+        ]
+        return feed
