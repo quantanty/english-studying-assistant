@@ -35,7 +35,7 @@ class State(TypedDict):
     step_state: StepState
     words: List[str]
     words_to_define: List[str]
-    collected_data: List[str]
+    collected_data: Dict[str, List[str]]
     word_entries: Dict[str, WordEntryState]
     node_results: str
 
