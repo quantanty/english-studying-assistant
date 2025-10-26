@@ -44,10 +44,25 @@ class Orchestrator:
         action_type = step_state.get("action_type")
         
         if action_type == "extract_words":
-            words_to_define = state.get("words_to_define")
-            observation_string += f"words to define: {words_to_define}"
+            words_to_define = state.get("words_to_define", [])
+            observation_string += f"Words to define: `{words_to_define}`."
+
         elif action_type == "define_words":
-            ...
+            words_to_define = state.get("words_to_define", [])
+            word_entries = state.get("word_entries", {})
+            if not words_to_define:
+                observation_string += "There're no words to define."
+            for word in words_to_define:
+                entry = word_entries.get(word)
+                if not entry:
+                    observation_string += f"Error while defining \"{word}\".\n"
+                else:
+                    result  = entry.get("result", "error")
+                    if result == "success":
+                        observation_string += f"Successfully defined \"{word}\".\n"
+                    else:
+                        observation_string += f"Error while defining \"{word}\".\n"
+                
         elif action_type == "generate_quizzes":
             ...
 
