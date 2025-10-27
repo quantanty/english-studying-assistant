@@ -1,1 +1,1 @@
-from src import config, schemas
+# from src import config, schemas
