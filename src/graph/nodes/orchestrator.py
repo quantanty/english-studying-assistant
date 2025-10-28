@@ -2,6 +2,11 @@ from src.schemas.state import State, StepState
 from src.schemas.models import OrchestratorOutput, Action
 from src.utils.state_utils import get_word_defining_results
 from src.utils.human_in_the_loop import ask_permission
+from src.prompts import (
+    ORCHESTRATOR_SYSTEM,
+    ORCHESTRATOR_USER_START,
+    ORCHESTRATOR_USER_NEXT
+)
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 import logging
@@ -9,13 +14,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Orchestrator:
-    def __init__(self, llm, system, user_1, user_2):
+    def __init__(self, llm):
         self.llm = llm.with_structured_output(OrchestratorOutput)
         
         # prompt
-        self.system = system
-        self.user_1 = user_1 # start
-        self.user_2 = user_2 # next
+        self.system = ORCHESTRATOR_SYSTEM
+        self.user_1 = ORCHESTRATOR_USER_START
+        self.user_2 = ORCHESTRATOR_USER_NEXT
         self.feed = []
 
     def __call__(self, state: State) -> State:

@@ -1,6 +1,10 @@
 from src.schemas.state import State, WordEntryState
 from src.utils.context import get_conversation_string
 from src.utils.state_utils import get_word_defining_results
+from src.prompts import (
+    PRESENTER_SYSTEM,
+    PRESENTER_USER
+)
 
 from langgraph.types import StreamWriter
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -9,10 +13,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Presenter:
-    def __init__(self, llm, system, user):
+    def __init__(self, llm):
         self.llm = llm
-        self.system = system
-        self.user = user
+        self.system = PRESENTER_SYSTEM
+        self.user = PRESENTER_USER
 
     async def __call__(self, state: State,  writer: StreamWriter) -> State:
         conversation = get_conversation_string(state)

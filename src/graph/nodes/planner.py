@@ -1,6 +1,12 @@
 from src.schemas.state import State
 from src.schemas.models import PlannerOutput
 from src.utils.context import get_conversation_string
+from src.prompts import (
+    PLANNER_SYSTEM_PHASE_1,
+    PLANNER_SYSTEM_PHASE_2,
+    PLANNER_USER_PHASE_1,
+    PLANNER_USER_PHASE_2
+)
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 import logging
@@ -8,15 +14,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Planner:
-    def __init__(self, llm, system_1, system_2, user_1, user_2):
+    def __init__(self, llm):
         self.llm = llm
         self.llm_structured_output = llm.with_structured_output(PlannerOutput)
         # reasoning prompt
-        self.system_1 = system_1
-        self.user_1 = user_1
+        self.system_1 = PLANNER_SYSTEM_PHASE_1
+        self.user_1 = PLANNER_USER_PHASE_1
         # structured output prompt
-        self.system_2 = system_2
-        self.user_2 = user_2
+        self.system_2 = PLANNER_SYSTEM_PHASE_2
+        self.user_2 = PLANNER_USER_PHASE_2
 
     def __call__(self, state: State) -> State:
         intent = state.get("intent")

@@ -1,5 +1,9 @@
 from src.schemas.models import Meaning, WordEntry
 from src.schemas.state import State, WordEntryState
+from src.prompts import (
+    WORD_ENTRY_GENERATOR_SYSTEM,
+    WORD_ENTRY_GENERATOR_USER
+)
 
 from langchain_core.messages import SystemMessage, HumanMessage
 import logging
@@ -7,10 +11,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 class WordEntryGenerator:
-    def __init__(self, llm, system, user):
+    def __init__(self, llm):
         self.llm = llm.with_structured_output(WordEntry)#, retry=True, max_retries=3)
-        self.system = system
-        self.user = user
+        self.system = WORD_ENTRY_GENERATOR_SYSTEM
+        self.user = WORD_ENTRY_GENERATOR_USER
 
     def __call__(self, state: State) -> State:
         words_to_define = state.get("words_to_define", [])

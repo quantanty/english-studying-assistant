@@ -78,3 +78,9 @@ class Assistant:
             self, session_id: str
     ):
         ...
+
+    async def get_chat_history(self, session_id: str) -> ...:
+        ...
+
+    async def clear_chat_history(self, session_id: str):
+        ...
