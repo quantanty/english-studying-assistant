@@ -1,4 +1,3 @@
-from src.utils.prompt_loader import PromptLoader
 from src.services.llm_client import create_llm
 from src.schemas.state import State
 from src.schemas.models import Action
@@ -70,12 +69,12 @@ class Assistant:
         return self._graph
     
     async def get_stream_response(
-            self, messages: ..., session_id: str
+        self, messages: ..., session_id: str
     ):
         ...
 
     async def get_chat_history(
-            self, session_id: str
+        self, session_id: str
     ):
         ...
 
