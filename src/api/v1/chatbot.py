@@ -4,6 +4,7 @@ from src.schemas.chat import (
     ChatRequest,
     StreamResponse
 )
+from src.services.llm_client import create_llm
 
 from fastapi.responses import StreamingResponse
 from fastapi import (
@@ -16,7 +17,7 @@ from fastapi import (
 import json
 
 router = APIRouter()
-assistant = Assistant()
+assistant = Assistant(llm=create_llm())
 
 @router.post("/chat/stream")
 async def chat_stream(

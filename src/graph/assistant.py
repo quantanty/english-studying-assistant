@@ -18,6 +18,7 @@ from src.schemas.chat import Message
 from src.schemas.models import Action
 from src.schemas.state import State
 from src.services.llm_client import create_llm
+from src.utils.graph import dump_messages
 
 
 class Assistant:
@@ -25,9 +26,9 @@ class Assistant:
         self.llm = llm
         self._graph: Optional[CompiledStateGraph] = None
 
-    async def create_graph(self, llm=None, checkpointer=None):
+    async def create_graph(self, checkpointer=None):
         if self._graph is None:
-            llm = llm or create_llm()
+            llm = self.llm
 
             graph_builder = StateGraph(State)
 
@@ -81,7 +82,7 @@ class Assistant:
         
         try:
             async for chunk in self._graph.astream(
-                {"messages": ...}, config=config, stream_mode="custom"
+                {"messages": dump_messages(messages)}, config=config, stream_mode="custom"
             ):
                 try:
                     if "presenter" in chunk:
