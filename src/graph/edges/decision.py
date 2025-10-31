@@ -7,3 +7,10 @@ def after_orchestrator(state: State) -> str:
 
 def after_preparation(state: State) -> str:
     return state.get("preparation_result", "error")
+
+def after_intent_classifier(state: State) -> str:
+    intent = state.get("intent", "general_chat")
+    if intent == "learn_words":
+        return "learn_words"
+    else:
+        return "general_chat"

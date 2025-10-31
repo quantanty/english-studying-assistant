@@ -4,7 +4,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 from langgraph.graph import END, START
 from langgraph.graph.state import CompiledStateGraph, StateGraph
 
-from src.graph.edges.decision import after_orchestrator, after_preparation
+from src.graph.edges.decision import after_orchestrator, after_preparation, after_intent_classifier
 from src.graph.nodes.intent_classifier import IntentClassifier
 from src.graph.nodes.orchestrator import Orchestrator
 from src.graph.nodes.planner import Planner
@@ -19,6 +19,7 @@ from src.schemas.models import Action
 from src.schemas.state import State
 from src.services.llm_client import create_llm
 from src.utils.graph import dump_messages
+from langgraph.checkpoint.memory import InMemorySaver
 
 
 class Assistant:
@@ -46,13 +47,22 @@ class Assistant:
             
             graph_builder.add_edge(START, "preparing")
             graph_builder.add_edge("preparing", "intent_classifier")
-            graph_builder.add_edge("intent_classifier", "planner")
+            # graph_builder.add_edge("intent_classifier", "planner")
             graph_builder.add_edge("planner", "orchestrator")
             graph_builder.add_edge("word_extractor", "orchestrator")
             graph_builder.add_edge("word_retriever", "word_entry_generator")
             graph_builder.add_edge("word_entry_generator", "orchestrator")
             graph_builder.add_edge("quiz_generator", "orchestrator")
             graph_builder.add_edge("presenter", END)
+            
+            graph_builder.add_conditional_edges(
+                "intent_classifier",
+                after_intent_classifier,
+                {
+                    "learn_words": "planner",
+                    "general_chat": "presenter"
+                }
+            )
 
             graph_builder.add_conditional_edges(
                 "orchestrator",
@@ -78,7 +88,7 @@ class Assistant:
         }
         
         if self._graph is None:
-            self._graph = await self.create_graph()
+            self._graph = await self.create_graph(checkpointer=InMemorySaver())
         
         try:
             async for chunk in self._graph.astream(
