@@ -84,16 +84,28 @@ def parse_dict_of_lists_from_env(prefix, default_dict=None):
         
 class Settings:
     def __init__(self):
+        # Set the environment
         self.ENVIRONMENT = get_environment()
+        
+        # Application Settings
         self.PROJECT_NAME = os.getenv("PROJECT_NAME", "English Studying Assistant")
         self.VERSION = os.getenv("VERSION", "1.0.0")
-
         self.API_V1_STR = os.getenv("API_V1_STR", "/api/v1")
         
+        # LangGraph Configuration
         self.GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
         self.DEFAULT_LLM_TEMPERATURE = float(os.getenv("DEFAULT_LLM_TEMPERATURE", "0.2"))
         self.MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2000"))
         self.MAX_LLM_CALL_RETRIES = int(os.getenv("MAX_LLM_CALL_RETRIES", "3"))
         
+        # Postgres Configuration
+        self.POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
+        self.POSTGRES_PORT = os.getenv("POSTGRES_HOST", "localhost")
+        self.POSTGRES_DB = os.getenv("POSTGRES_HOST", "localhost")
+        self.POSTGRES_USER = os.getenv("POSTGRES_HOST", "localhost")
+        self.POSTGRES_PASSWORD = os.getenv("POSTGRES_HOST", "localhost")
+        self.POSTGRES_POOL_SIZE = os.getenv("POSTGRES_HOST", "localhost")
+        self.POSTGRES_MAX_OVERFLOW = os.getenv("POSTGRES_HOST", "localhost")
+        self.CHECKPOINT_TALBLES = ["checkpoint_blobs", "checkpoint_writes", "checkpoints"]
 
 settings = Settings()
