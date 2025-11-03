@@ -98,14 +98,19 @@ class Settings:
         self.MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2000"))
         self.MAX_LLM_CALL_RETRIES = int(os.getenv("MAX_LLM_CALL_RETRIES", "3"))
         
+        # JWT Configuration
+        self.JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
+        self.JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+        self.JWT_ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_DAYS", "30"))
+        
         # Postgres Configuration
         self.POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
-        self.POSTGRES_PORT = os.getenv("POSTGRES_HOST", "localhost")
-        self.POSTGRES_DB = os.getenv("POSTGRES_HOST", "localhost")
-        self.POSTGRES_USER = os.getenv("POSTGRES_HOST", "localhost")
-        self.POSTGRES_PASSWORD = os.getenv("POSTGRES_HOST", "localhost")
-        self.POSTGRES_POOL_SIZE = os.getenv("POSTGRES_HOST", "localhost")
-        self.POSTGRES_MAX_OVERFLOW = os.getenv("POSTGRES_HOST", "localhost")
+        self.POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", "5432"))
+        self.POSTGRES_DB = os.getenv("POSTGRES_DB", "mydb")
+        self.POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
+        self.POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
+        self.POSTGRES_POOL_SIZE = int(os.getenv("POSTGRES_POOL_SIZE", "20"))
+        self.POSTGRES_MAX_OVERFLOW = int(os.getenv("POSTGRES_MAX_OVERFLOW", "10"))
         self.CHECKPOINT_TALBLES = ["checkpoint_blobs", "checkpoint_writes", "checkpoints"]
 
 settings = Settings()

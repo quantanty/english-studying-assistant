@@ -6,3 +6,7 @@ fastapi
 uvicorn
 python-dotenv
 psycopg2-binary
+bcrypt
+pydantic[email]
+python-jose[cryptography]
+python-multipart

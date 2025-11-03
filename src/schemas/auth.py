@@ -23,7 +23,7 @@ class UserCreate(BaseModel):
     email: EmailStr = Field(..., description="User's email address")
     password: SecretStr = Field(..., description="User's password", min_length=8, max_length=64)
     
-    @field_validator
+    @field_validator("password")
     @classmethod
     def validate_password(cls, v: SecretStr) -> SecretStr:
         password = v.get_secret_value()
@@ -56,7 +56,7 @@ class SessionResponse(BaseModel):
     name: str = Field(default="", description="Name of the session", max_length=100)
     token: Token = Field(..., description="The authentication token for the session")
     
-    @field_validator
+    @field_validator("name")
     @classmethod
     def sannitize_name(cls, v: str) -> str:
         sanitized = re.sub(r'[<>{}[\]()\'"`]', "", v)
