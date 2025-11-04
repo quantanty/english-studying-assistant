@@ -23,6 +23,7 @@ src.egg-info/
 
 # Ignore editor configs
 .vscode/
+pyrightconfig.json
 
 # Log files
 logs/
