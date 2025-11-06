@@ -15,7 +15,7 @@ class Example(BaseModel):
 
 class SimilarWord(BaseModel):
     word: str = Field(..., description="Similar / confusable word")
-    difference: str = Field(None, description="One-line explanation of how this word differs from the base word (e.g., 'affect is a verb, effect is a noun').")
+    difference: str = Field(..., description="One-line explanation of how this word differs from the base word (e.g., 'affect is a verb, effect is a noun').")
 
 class Meaning(BaseModel):
     definition: str = Field(..., description="Definition in English")
@@ -109,7 +109,7 @@ class WordEntryFull(BaseModel):
 class MultipleChoiceQuestion(BaseModel):
     type: Literal["multiple_choice"] = "multiple_choice"
     question: str
-    options: List[str] = Field(..., min_items=2)
+    options: List[str] = Field(..., min_length=2)
     answer_index: int = Field(..., description="Index into options (0-based)")
     explanation: Optional[str] = Field(None, description="Explanation for the correct answer")
 
@@ -142,50 +142,3 @@ class TrueFalseQuestion(BaseModel):
 
 
 QuizQuestion = Union[MultipleChoiceQuestion, FillInBlankQuestion, TrueFalseQuestion]
-
-
-
-
-# ---------- Example usage ----------
-if __name__ == "__main__":
-    example = WordEntry(
-        word="run",
-        phonetic="/rʌn/",
-        meanings=[
-            Meaning(
-                definition="to move swiftly on foot",
-                part_of_speech="verb",
-                translation_vi="chạy",
-                examples=[Example(en="I run every morning.", vi="Tôi chạy bộ mỗi sáng.")],
-                pro_tips=[
-                    "In sports contexts, pair with adverbs of manner: 'run quickly', 'run slowly'.",
-                ],
-                similar_words=[
-                    SimilarWord(word="jog", difference="Jog = light running for exercise; slower than 'run'.")
-                ],
-            ),
-            Meaning(
-                definition="to manage or operate",
-                part_of_speech="verb",
-                translation_vi="điều hành",
-                examples=[Example(en="She runs a small business.", vi="Cô ấy điều hành một doanh nghiệp nhỏ.")],
-                pro_tips=[
-                    "Use 'run a company' to mean 'operate' rather than 'control'.",
-                ],
-                usage_note="Common collocation: 'run a business', not 'make a business'",
-            ),
-        ],
-        collocations=["run out of time", "run into trouble", "run a risk"],
-        
-        metadata={"source": "custom-dictionary", "generated_at": "2025-09-12T00:00:00+07:00"},
-    )
-
-    # Dump JSON
-    print(example.model_dump_json(indent=2))
-
-    quiz = MultipleChoiceQuestion(
-        question="foobar question",
-        options=['a', 'b'],
-        answer_index=1
-    )
-    print(quiz.model_dump_json(indent=2))

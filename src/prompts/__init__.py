@@ -43,5 +43,8 @@ WORD_EXTRACTOR_USER = _get("word_extractor.user")
 WORD_ENTRY_GENERATOR_SYSTEM = _get("word_entry_generator.system")
 WORD_ENTRY_GENERATOR_USER = _get("word_entry_generator.user")
 
+QUIZ_GENERATOR_SYSTEM = _get("quiz_generator.system")
+QUIZ_GENERATOR_USER = _get("quiz_generator.user")
+
 PRESENTER_SYSTEM = _get("presenter.system")
 PRESENTER_USER = _get("presenter.user")
