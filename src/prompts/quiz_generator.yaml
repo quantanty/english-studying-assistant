@@ -31,17 +31,29 @@ system: |-
   - Keep total quiz length reasonable (3–5 questions per word).
   </constraints>
 
-  ...
+  <tools>
+  - For each type of quiz, you have a tool to create it, one quiz at a time:
+    - create_multiple_choice_question
+    - create_fill_in_blank_question
+    - create_true_false_question
+  - So if the instruction says "create 5 multiple choice questions", you should you `create_multiple_choice_question` five times.
+  </tools>
 
-user: |-
-  <words>
-  {words}
-  </words>
+user:
+  first: |-
+    <words>
+    {words}
+    </words>
 
-  <instruction>
-  {instruction}
-  </instruction>
+    <instruction>
+    {instruction}
+    </instruction>
 
-  <retrieved_information>
-  {retrieved_information}
-  <retrieved_information>
+    <retrieved_information>
+    {retrieved_information}
+    <retrieved_information>
+  
+  next: |-
+    <observation>
+    {observation}
+    <observation>

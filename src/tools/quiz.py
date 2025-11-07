@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 from langchain.tools import tool
 from src.schemas.models import (
     QuizQuestion,
@@ -13,16 +13,20 @@ def create_multiple_choice_question(
     options: List[str],
     answer_index: int,
     explanation: Optional[str]
-) -> MultipleChoiceQuestion:
+) -> Union[MultipleChoiceQuestion, str]:
     """
     Generate a multiple choice question for testing meaning comprehension.
     """ 
-    return MultipleChoiceQuestion(
-        question=question,
-        options=options,
-        answer_index=answer_index,
-        explanation=explanation 
-    )
+    try:
+        quiz = MultipleChoiceQuestion(
+            question=question,
+            options=options,
+            answer_index=answer_index,
+            explanation=explanation 
+        )
+        return quiz
+    except Exception as e:
+        return f"Error while creating multiple choice question: {str(e)}"
 
 @tool(args_schema=FillInBlankQuestion)
 def create_fill_in_blank_question(
@@ -30,24 +34,32 @@ def create_fill_in_blank_question(
     answer: str,
     hint: Optional[str] = None,
     explanation: Optional[str] = None
-):
+) -> Union[FillInBlankQuestion, str]:
     """
     Generate a fill in the blank question for testing meaning comprehension.
     """
-    return FillInBlankQuestion(
-        question=question,
-        answer=answer,
-        hint=hint,
-        explanation=explanation
-    )
+    try:
+        quiz =  FillInBlankQuestion(
+            question=question,
+            answer=answer,
+            hint=hint,
+            explanation=explanation
+        )
+        return quiz
+    except Exception as e:
+        return f"Error while creating fill in blank question: {str(e)}"
 
 @tool(args_schema=TrueFalseQuestion)
 def create_true_false_question(
     question: str,
     answer: bool,
     explanation: Optional[str] = None
-):
+) -> Union[TrueFalseQuestion, str]:
     """
     Generate a true false question for testing meaning comprehension.
     """
-    return TrueFalseQuestion(question=question, answer=answer, explanation=explanation)
+    try:
+        quiz =  TrueFalseQuestion(question=question, answer=answer, explanation=explanation)
+        return quiz
+    except Exception as e:
+        return f"Error while creating true false question: {str(e)}"
