@@ -37,10 +37,11 @@ class State(TypedDict):
     words_to_define: List[str]
     collected_data: Dict[str, List[str]]
     word_entries: Dict[str, WordEntryState]
+    qgen_messages: List[AnyMessage]
     
 
     # ---- Final output ----
-    quiz: QuizQuestion
+    quizzes: List[QuizQuestion]
 
     # ---- Control / metadata ----
     metadata: Dict[str, Any]
