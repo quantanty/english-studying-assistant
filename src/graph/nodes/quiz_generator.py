@@ -10,11 +10,24 @@ logger = logging.getLogger(__name__)
 
 class QuizGenerator:
     def __init__(self, llm):
-        # TODO: with_structured_output()
         self.llm = llm
         self.system = QUIZ_GENERATOR_SYSTEM
         self.user = QUIZ_GENERATOR_USER
 
     # TODO: quiz generator logic
-    def __call__(self, state: State) -> State:
-        pass
+    async def __call__(self, state: State) -> State:
+        feed = self.construct_feed(state)
+        response = await self.llm.ainvoke(feed)
+        return response
+        
+        
+    def construct_feed(self, state):
+        qgen_messages = state.get("qgen_messages")
+        instruction = state.get("instruction")
+        words = state.get("words", [])
+        retrieved_infomation = state.get("collected_data")
+        feed = [
+            SystemMessage(content=self.system),
+            HumanMessage(content=self.user.format(words=words, instruction=instruction, retrieved_information=retrieved_infomation))
+        ]
+        return feed
