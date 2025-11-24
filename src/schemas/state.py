@@ -14,12 +14,12 @@ class WordEntryState(TypedDict):
     metadata: Optional[Dict]
     result: Literal["success", "error"]
 
-class StepState(TypedDict):
+class StepState(TypedDict, total=False):
     action_type: Literal[
         "extract_words", "define_words", "generate_quizzes", "present", "end"
     ]
-    success: bool
-    observation: str
+    success: Optional[bool]
+    observation: Optional[str]
 
 class State(TypedDict):
     # ---- Conversation ----
@@ -28,15 +28,19 @@ class State(TypedDict):
     summary: str
 
     # ---- Intermediate steps ____
+    preparation_result: Literal["success", "error"]
     intent: Literal["learn_words", "general_chat"]
     plan: List[PlanStep]
-    orchestrator_messages: List[AnyMessage]
     orchestrator_observation: List[str]
     step_state: StepState
     words: List[str]
     words_to_define: List[str]
     collected_data: Dict[str, List[str]]
     word_entries: Dict[str, WordEntryState]
+    qgen_instruction: str
+    
+    # ---- LLM messages ----
+    orchestrator_messages: List[AnyMessage]
     qgen_messages: List[AnyMessage]
     
 

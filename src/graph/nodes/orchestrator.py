@@ -17,13 +17,11 @@ class Orchestrator:
     def __init__(self, llm):
         self.llm = llm.with_structured_output(OrchestratorOutput)
         
-        # prompt
         self.system = ORCHESTRATOR_SYSTEM
         self.user_1 = ORCHESTRATOR_USER_START
         self.user_2 = ORCHESTRATOR_USER_NEXT
-        self.feed = []
 
-    def __call__(self, state: State) -> State:
+    def __call__(self, state: State):
         if not self.feed:
             self._construct_feed_start(state)
         else:
@@ -39,8 +37,6 @@ class Orchestrator:
             "step_state": step_state
         }
 
-    def reset_feed(self):
-        self.feed = []
 
     def _construct_observation_string(self, state: State):
         observation_string = ""
