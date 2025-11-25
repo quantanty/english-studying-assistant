@@ -1,9 +1,11 @@
 import os
 import yaml
 from pathlib import Path
+from typing import Optional
+
 TEMPLATE_KEY = "template"
 
-def _get(full_name: str, dir:Path = None) -> str:
+def _get(full_name: str, dir:Optional[Path] = None) -> str:
     parts = full_name.split(".")
     
     file_name, key_path = parts[0], parts[1:]

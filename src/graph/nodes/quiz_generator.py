@@ -25,7 +25,7 @@ class QuizGenerator:
             qgen_messages = self.construct_initial_feed(instruction, words, retrieved_information)
 
         response = await self.llm.ainvoke(qgen_messages)
-        qgen_messages.append(response)
+        qgen_messages.append(AIMessage(content=str(response.model_dump())))
 
         return {"qgen_messages": qgen_messages}
         

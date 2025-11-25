@@ -21,7 +21,7 @@ class StepState(TypedDict, total=False):
     success: Optional[bool]
     observation: Optional[str]
 
-class State(TypedDict):
+class State(TypedDict, total=False):
     # ---- Conversation ----
     messages: Annotated[list[AnyMessage], add_messages]
     window_index: int

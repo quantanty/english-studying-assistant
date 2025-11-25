@@ -30,7 +30,7 @@ class Orchestrator:
             self._append_feed(state, orchestrator_messages)
         
         response = await self.llm.ainvoke(orchestrator_messages)
-        orchestrator_messages.append(response)
+        orchestrator_messages.append(AIMessage(content=str(response.model_dump())))
         step_state = StepState(
             action_type=response.action
         )
@@ -56,16 +56,17 @@ class Orchestrator:
             word_entries = state.get("word_entries", {})
             if not words_to_define:
                 observation_string += "There're no words to define."
-            for word in words_to_define:
-                entry = word_entries.get(word)
-                if not entry:
-                    observation_string += f"Error while defining \"{word}\".\n"
-                else:
-                    result  = entry.get("result", "error")
-                    if result == "success":
-                        observation_string += f"Successfully defined \"{word}\".\n"
-                    else:
+            else:
+                for word in words_to_define:
+                    entry = word_entries.get(word)
+                    if not entry:
                         observation_string += f"Error while defining \"{word}\".\n"
+                    else:
+                        result  = entry.get("result", "error")
+                        if result == "success":
+                            observation_string += f"Successfully defined \"{word}\".\n"
+                        else:
+                            observation_string += f"Error while defining \"{word}\".\n"
                 
         elif action_type == "generate_quizzes":
             ...

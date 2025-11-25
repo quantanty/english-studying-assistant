@@ -9,6 +9,7 @@ class QuizToolNode:
     def __call__(self, state: State):
         try:
             qgen_messages = state.get("qgen_messages", [])
+            assert len(qgen_messages) > 0
             message = qgen_messages[-1]
             assert isinstance(message, AIMessage) 
             

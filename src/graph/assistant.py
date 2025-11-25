@@ -4,7 +4,7 @@ from typing import Any, AsyncGenerator, Dict, List, Optional
 from langgraph.graph import END, START
 from langgraph.graph.state import CompiledStateGraph, StateGraph
 
-from src.graph.edges.decision import after_orchestrator, after_preparation, after_intent_classifier
+from src.graph.edges.decision import after_orchestrator, after_preparation, after_intent_classifier, after_quiz_generator
 from src.graph.nodes.intent_classifier import IntentClassifier
 from src.graph.nodes.orchestrator import Orchestrator
 from src.graph.nodes.planner import Planner
@@ -14,6 +14,12 @@ from src.graph.nodes.quiz_generator import QuizGenerator
 from src.graph.nodes.word_entry_generator import WordEntryGenerator
 from src.graph.nodes.word_extractor import WordExtractor
 from src.graph.nodes.word_retriever import WordRetriever
+from src.graph.nodes.quiz_tool_node import QuizToolNode
+from src.tools.quiz import (
+    create_multiple_choice_question,
+    create_fill_in_blank_question,
+    create_true_false_question
+)
 from src.schemas.chat import Message
 from src.schemas.models import Action
 from src.schemas.state import State
@@ -30,6 +36,7 @@ class Assistant:
     async def create_graph(self, checkpointer=None):
         if self._graph is None:
             llm = self.llm
+            quiz_tools = [create_multiple_choice_question, create_fill_in_blank_question, create_true_false_question]
 
             graph_builder = StateGraph(State)
 
@@ -44,6 +51,7 @@ class Assistant:
             graph_builder.add_node("word_extractor", WordExtractor(llm))
             graph_builder.add_node("word_retriever", WordRetriever(llm, []))
             graph_builder.add_node("quiz_generator", QuizGenerator(llm))
+            graph_builder.add_node("quiz_tools", QuizToolNode(quiz_tools))
             
             graph_builder.add_edge(START, "preparing")
             graph_builder.add_edge("preparing", "intent_classifier")
@@ -52,7 +60,7 @@ class Assistant:
             graph_builder.add_edge("word_extractor", "orchestrator")
             graph_builder.add_edge("word_retriever", "word_entry_generator")
             graph_builder.add_edge("word_entry_generator", "orchestrator")
-            graph_builder.add_edge("quiz_generator", "orchestrator")
+            graph_builder.add_edge("quiz_tools", "quiz_generator")
             graph_builder.add_edge("presenter", END)
             
             graph_builder.add_conditional_edges(
@@ -76,6 +84,15 @@ class Assistant:
                 }
             )
 
+            graph_builder.add_conditional_edges(
+                "quiz_generator",
+                after_quiz_generator,
+                {
+                    "tool_call": "quiz_tools",
+                    "finish": "orchestrator"
+                }
+            )
+
             self._graph = graph_builder.compile(checkpointer)
         
         return self._graph
@@ -92,7 +109,7 @@ class Assistant:
         
         try:
             async for chunk in self._graph.astream(
-                {"messages": dump_messages(messages)}, config=config, stream_mode="custom"
+                {"messages": dump_messages(messages)}, config=config, stream_mode="custom" # type: ignore
             ):
                 try:
                     if "presenter" in chunk:
@@ -105,9 +122,6 @@ class Assistant:
     async def get_chat_history(
         self, session_id: str
     ):
-        ...
-
-    async def get_chat_history(self, session_id: str) -> ...:
         ...
 
     async def clear_chat_history(self, session_id: str):

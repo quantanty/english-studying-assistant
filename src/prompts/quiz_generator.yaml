@@ -39,21 +39,15 @@ system: |-
   - So if the instruction says "create 5 multiple choice questions", you should you `create_multiple_choice_question` five times.
   </tools>
 
-user:
-  first: |-
-    <words>
-    {words}
-    </words>
+user: |-
+  <words>
+  {words}
+  </words>
 
-    <instruction>
-    {instruction}
-    </instruction>
+  <instruction>
+  {instruction}
+  </instruction>
 
-    <retrieved_information>
-    {retrieved_information}
-    <retrieved_information>
-  
-  next: |-
-    <observation>
-    {observation}
-    <observation>
+  <retrieved_information>
+  {retrieved_information}
+  <retrieved_information>
