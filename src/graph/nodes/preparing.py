@@ -12,6 +12,7 @@ def preparing(orchestrator: Orchestrator):
 
             orchestrator_messages = []
             qgen_messages = []
+            quizzes = []
         except Exception as e:
             return {"preparation_result": "error"}
         
@@ -19,6 +20,7 @@ def preparing(orchestrator: Orchestrator):
             "preparation_result": "success",
             "words_to_define": [],
             "orchestrator_messages": orchestrator_messages,
-            "qgen_messages": qgen_messages
+            "qgen_messages": qgen_messages,
+            "quizzes": quizzes
         }
     return preparing_

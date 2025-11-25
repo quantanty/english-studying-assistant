@@ -38,6 +38,7 @@ class State(TypedDict):
     collected_data: Dict[str, List[str]]
     word_entries: Dict[str, WordEntryState]
     qgen_instruction: str
+    error: str
     
     # ---- LLM messages ----
     orchestrator_messages: List[AnyMessage]

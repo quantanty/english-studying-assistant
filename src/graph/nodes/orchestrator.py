@@ -21,20 +21,23 @@ class Orchestrator:
         self.user_1 = ORCHESTRATOR_USER_START
         self.user_2 = ORCHESTRATOR_USER_NEXT
 
-    def __call__(self, state: State):
-        if not self.feed:
-            self._construct_feed_start(state)
+    async def __call__(self, state: State):
+        orchestrator_messages = state.get("orchestrator_messages", [])
+        if not orchestrator_messages:
+            orchestrator_messages= self._init_feed(state)
         else:
             self._construct_observation_string(state)
-            self._construct_feed_next(state)
+            self._append_feed(state, orchestrator_messages)
         
-        response = self.llm.invoke(self.feed)
+        response = await self.llm.ainvoke(orchestrator_messages)
+        orchestrator_messages.append(response)
         step_state = StepState(
             action_type=response.action
         )
 
         return {
-            "step_state": step_state
+            "step_state": step_state,
+            "orchestrator_messages": orchestrator_messages
         }
 
 
@@ -69,20 +72,21 @@ class Orchestrator:
 
         state["step_state"]["observation"] = observation_string
 
-    def _construct_feed_start(self, state: State):
+    def _init_feed(self, state: State):
         intent = state.get("intent")
         plan = state.get("plan")
-        self.feed = [
+        feed = [
             SystemMessage(content=self.system),
             HumanMessage(content=self.user_1.format(intent=intent, plan=plan))
         ]
+        return feed
     
-    def _construct_feed_next(self, state: State):
+    def _append_feed(self, state: State, feed):
         step_state = state.get("step_state")
         type = step_state.get("action_type")
         success = step_state.get("success")
         observation = step_state.get("observation")
-        self.feed.append(HumanMessage(
+        feed.append(HumanMessage(
             content=self.user_2.format(
                 type=type,
                 success=success,
