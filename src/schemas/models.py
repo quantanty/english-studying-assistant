@@ -1,4 +1,4 @@
-from typing import List, Optional, Literal, Union, Dict
+from typing import List, Optional, Literal, Union, Dict, Annotated
 from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
 
@@ -71,11 +71,44 @@ class PlanStep(BaseModel):
 class PlannerOutput(BaseModel):
     steps: List[PlanStep]
 
+class DefineWordsParams(BaseModel):
+    words: List[str]
+
+class GenerateQuizzesParams(BaseModel):
+    words: List[str] = Field(..., description="List of vocabulary to learn through quizzes")
+    instructions: Optional[str] = Field(..., description="Instruction to generate quizzes")
+
+class ExtractWordsAction(BaseModel):
+    action: Literal["extract_words"]
+    
+class DefineWordsAction(BaseModel):
+    action: Literal["define_words"]
+    params: ...
+    
+class GenerateQuizzesAction(BaseModel):
+    action: Literal["generate_quizzes"]
+    params: GenerateQuizzesParams
+    
+class PresentAction(BaseModel):
+    action: Literal["present"]
+
+class EndAction(BaseModel):
+    action: Literal["end"]
+    
+OrchestratorActionOutput = Annotated[
+    Union[
+        ExtractWordsAction,
+        DefineWordsAction,
+        GenerateQuizzesAction,
+        PresentAction,
+        EndAction
+    ],
+    Field(discriminator="action")
+]
+
 class OrchestratorOutput(BaseModel):
-    reasoning: str = Field(..., description="")
-    action: Literal[
-        "extract_words", "define_words", "generate_quizzes", "present", "end"
-    ] = Field(..., description="action types")
+    reasoning: str = Field(..., description="Reasoning for your decision")
+    result: OrchestratorActionOutput = Field(..., description="Action types")
 
 class WordExtractorOutput(BaseModel):
     words: List[str] = Field(default_factory=list, description="English words to be defined.")

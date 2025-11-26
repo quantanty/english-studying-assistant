@@ -2,7 +2,8 @@ import logging
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
-from src.schemas.state import State
+from src.schemas.state import State, StepState
+from src.schemas.models import GenerateQuizzesParams
 from src.prompts import QUIZ_GENERATOR_SYSTEM, QUIZ_GENERATOR_USER
 
 logger = logging.getLogger(__name__)
@@ -18,14 +19,18 @@ class QuizGenerator:
         qgen_messages = state.get("qgen_messages", [])
 
         if not qgen_messages:
-            instruction = state.get("qgen_instruction")
-            words = state.get("words", [])
+            step_state = state.get("step_state")
+            assert step_state
+            params = step_state.get("params")
+            assert isinstance(params, GenerateQuizzesParams)
+            words = params.words
+            instruction = params.instructions
             retrieved_information = state.get("collected_data")
 
             qgen_messages = self.construct_initial_feed(instruction, words, retrieved_information)
 
         response = await self.llm.ainvoke(qgen_messages)
-        qgen_messages.append(AIMessage(content=str(response.model_dump())))
+        qgen_messages.append(response)
 
         return {"qgen_messages": qgen_messages}
         

@@ -26,14 +26,17 @@ class Orchestrator:
         if not orchestrator_messages:
             orchestrator_messages= self._init_feed(state)
         else:
-            self._construct_observation_string(state)
-            self._append_feed(state, orchestrator_messages)
+            step_state = state.get("step_state", StepState())
+            self._construct_observation_string(state, step_state)
+            self._append_feed(state, step_state, orchestrator_messages)
         
         response = await self.llm.ainvoke(orchestrator_messages)
         orchestrator_messages.append(AIMessage(content=str(response.model_dump())))
         step_state = StepState(
-            action_type=response.action
+            action_type=response.result.action,
         )
+        if hasattr(response.result, "params"):
+            step_state["params"] = response.result.params
 
         return {
             "step_state": step_state,
@@ -41,10 +44,9 @@ class Orchestrator:
         }
 
 
-    def _construct_observation_string(self, state: State):
+    def _construct_observation_string(self, state: State, step_state: StepState):
         observation_string = ""
 
-        step_state = state.get("step_state")
         action_type = step_state.get("action_type")
         
         if action_type == "extract_words":
@@ -69,9 +71,10 @@ class Orchestrator:
                             observation_string += f"Error while defining \"{word}\".\n"
                 
         elif action_type == "generate_quizzes":
+            # This can be done by Quiz Generator llm
             ...
 
-        state["step_state"]["observation"] = observation_string
+        step_state["observation"] = observation_string
 
     def _init_feed(self, state: State):
         intent = state.get("intent")
@@ -82,8 +85,7 @@ class Orchestrator:
         ]
         return feed
     
-    def _append_feed(self, state: State, feed):
-        step_state = state.get("step_state")
+    def _append_feed(self, state: State, step_state: StepState, feed):
         type = step_state.get("action_type")
         success = step_state.get("success")
         observation = step_state.get("observation")
