@@ -18,7 +18,7 @@ class StepState(TypedDict, total=False):
     action_type: Literal[
         "extract_words", "define_words", "generate_quizzes", "present", "end"
     ]
-    params: Dict[str, Any]
+    params: Any
     success: Optional[bool]
     observation: Optional[str]
 

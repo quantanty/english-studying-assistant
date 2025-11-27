@@ -26,7 +26,8 @@ class Orchestrator:
         if not orchestrator_messages:
             orchestrator_messages= self._init_feed(state)
         else:
-            step_state = state.get("step_state", StepState())
+            step_state = state.get("step_state")
+            assert step_state
             self._construct_observation_string(state, step_state)
             self._append_feed(state, step_state, orchestrator_messages)
         

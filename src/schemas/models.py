@@ -52,7 +52,18 @@ class Meaning(BaseModel):
 class ListOfMeanings(BaseModel):
     meanings: List[Meaning] = Field(default_factory=list, min_length=1, description="List of distinct meanings")
 
+class LearnWordsIntent(BaseModel):
+    intent: Literal["learn_words"]
+    words: List[str]
+    quiz: bool
+
+class GeneralChatIntent(BaseModel):
+    intent: Literal["general_chat"]
     
+IntentOutput = Annotated[
+    Union[LearnWordsIntent, GeneralChatIntent],
+    Field(discriminator="intent")
+]        
 
 class IntentClassifierOutput(BaseModel):
     reasoning: str = Field(

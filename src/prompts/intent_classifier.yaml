@@ -11,6 +11,7 @@ system: |-
 
   <available_intents>
   - "learn_words": The user explicitly asks to learn, review, practice, or inquire about vocabulary, definitions, usage, or examples of English words/phrases.
+    For this intent, you should identify the English words/phrases (if any) that the user wants to learn, and determine wether the assistant should generate quizzes.
   - "general_chat": All other cases, including greetings, casual conversation, small talk, or non-learning-specific inquiries.
   </available_intents>
 
