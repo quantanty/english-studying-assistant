@@ -4,7 +4,8 @@ from langchain_core.messages import HumanMessage, AIMessage
 import textwrap
 
 def get_conversation_string(state: State):
-    messages = state["messages"]
+    messages = state.get("messages", [])
+    assert len(messages) > 0 and isinstance(messages[-1], HumanMessage)
     conversation_string = ""
     for msg in messages:
         if isinstance(msg, HumanMessage):

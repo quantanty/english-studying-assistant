@@ -61,7 +61,7 @@ async def get_current_session(
                 headers={"WWW-Authenticate": "Bearer"}
             )
 
-        session_id = santitize_string(session_id)
+        session_id = sanitize_string(session_id)
         session = await db_service.get_session(session_id)
         if session is None:
             raise HTTPException(
@@ -129,7 +129,7 @@ async def login(
 @router.post("/session", response_model=SessionResponse)
 async def create_session(user: User = Depends(get_current_user)):
     try:
-        session_id = str(uuid4())
+        session_id = str(uuid.uuid4())
 
         session = await db_service.create_session(session_id, user.id)
         token = create_access_token(session_id)

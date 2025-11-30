@@ -52,28 +52,59 @@ class Meaning(BaseModel):
 class ListOfMeanings(BaseModel):
     meanings: List[Meaning] = Field(default_factory=list, min_length=1, description="List of distinct meanings")
 
+class LearnWordsParams(BaseModel):
+    """
+    Parameters required by the 'learn_words' intent
+    """
+    words: List[str] = Field(..., description="words/phrases (if any) that the user wants to learn")
+    should_create_quizzes: bool = Field(..., description="determine wether the assistant should generate quizzes.")
+
 class LearnWordsIntent(BaseModel):
     intent: Literal["learn_words"]
-    words: List[str]
-    quiz: bool
+    words: List[str] = Field(..., description="words/phrases (if any) that the user wants to learn")
+    should_create_quizzes: bool = Field(..., description="determine wether the assistant should generate quizzes.")
 
 class GeneralChatIntent(BaseModel):
     intent: Literal["general_chat"]
-    
-IntentOutput = Annotated[
+
+Intent = Annotated[
     Union[LearnWordsIntent, GeneralChatIntent],
     Field(discriminator="intent")
-]        
+]
+
+# class IntentClassifierOutput(BaseModel):
+#     reasoning: str = Field(
+#         ...,
+#         description="A brief, internal, step-by-step thought process leading to the final 'intent' decision. This is for debugging and inspection, not for end-user display."
+#     )
+#     intent: Literal["learn_words", "general_chat"] = Field(
+#         ...,
+#         description=("The final classified intent of the user's message.")
+#     )
+#     learn_words_params: Optional[LearnWordsParams] = Field(
+#         ...,
+#         # description="Parameters required by the 'learn_words' intent, providing the words to be learned and the option to create quizzes. This field must not be None if intent='learn_words'"
+#         description="Must provide this if intent is 'learn_words'"
+#     )
+
+#     @model_validator(mode="after")
+#     def validate_params(self) -> 'IntentClassifierOutput':
+#         if self.intent == "learn_words":
+#             if self.learn_words_params is None:
+#                 raise ValueError("When intent is 'learn_words', 'learn_words_params' must be provided.")
+#         elif self.intent == "general_chat":
+#             if self.learn_words_params is not None:
+#                 raise ValueError("When intent is 'general_chat', 'learn_words_params' must be None.")
+#         return self
 
 class IntentClassifierOutput(BaseModel):
     reasoning: str = Field(
         ...,
         description="A brief, internal, step-by-step thought process leading to the final 'intent' decision. This is for debugging and inspection, not for end-user display."
     )
-    intent: Literal["learn_words", "general_chat"] = Field(
-        ...,
-        description=("The final classified intent of the user's message.")
-    )
+    
+    result: Intent = Field(..., description="Classified intent with additional parameters (if any)")
+    
     
 class PlanStep(BaseModel):
     action: str
@@ -94,7 +125,7 @@ class ExtractWordsAction(BaseModel):
     
 class DefineWordsAction(BaseModel):
     action: Literal["define_words"]
-    params: ...
+    params: DefineWordsParams
     
 class GenerateQuizzesAction(BaseModel):
     action: Literal["generate_quizzes"]

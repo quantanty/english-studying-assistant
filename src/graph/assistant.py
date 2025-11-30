@@ -29,8 +29,10 @@ from langgraph.checkpoint.memory import InMemorySaver
 
 
 class Assistant:
-    def __init__(self, llm):
+    def __init__(self, llm, client=None, model=None):
         self.llm = llm
+        self.client=client
+        self.model=model
         self._graph: Optional[CompiledStateGraph] = None
 
     async def create_graph(self, checkpointer=None):
@@ -43,7 +45,7 @@ class Assistant:
             orchestrator = Orchestrator(llm)
             graph_builder.add_node("preparing", preparing(orchestrator))
 
-            graph_builder.add_node("intent_classifier", IntentClassifier(llm))
+            graph_builder.add_node("intent_classifier", IntentClassifier(llm, self.client, self.model))
             graph_builder.add_node("planner", Planner(llm))
             graph_builder.add_node("orchestrator", orchestrator)
             graph_builder.add_node("word_entry_generator", WordEntryGenerator(llm))

@@ -10,3 +10,4 @@ bcrypt
 pydantic[email]
 python-jose[cryptography]
 python-multipart
+google-genai
