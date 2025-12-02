@@ -5,6 +5,7 @@ from langchain_core.messages import AnyMessage
 
 from typing import Annotated, List, Dict, Any, Optional, Literal
 from typing_extensions import TypedDict, Annotated
+from .llms import ModelSelection
 
 class WordEntryState(TypedDict):
     word: str
@@ -22,11 +23,22 @@ class StepState(TypedDict, total=False):
     success: Optional[bool]
     observation: Optional[str]
 
+class SelectedModel(TypedDict):
+    intent_classifier: ModelSelection
+    planner: ModelSelection
+    orchestrator: ModelSelection
+    word_entry_generator: ModelSelection
+    quiz_generator: ModelSelection
+    presenter: ModelSelection
+
 class State(TypedDict, total=False):
     # ---- Conversation ----
     messages: Annotated[list[AnyMessage], add_messages]
     window_index: int
     summary: str
+
+    # ---- Model Selection ----
+    selected_models: SelectedModel
 
     # ---- Intermediate steps ____
     preparation_result: Literal["success", "error"]

@@ -1,31 +1,42 @@
 import logging
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Literal, Optional
 
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START
 from langgraph.graph.state import CompiledStateGraph, StateGraph
 
-from src.graph.edges.decision import after_orchestrator, after_preparation, after_intent_classifier, after_quiz_generator
+from src.graph.edges.decision import (
+    after_intent_classifier,
+    after_orchestrator,
+    after_preparation,
+    after_quiz_generator,
+)
 from src.graph.nodes.intent_classifier import IntentClassifier
 from src.graph.nodes.orchestrator import Orchestrator
 from src.graph.nodes.planner import Planner
 from src.graph.nodes.preparing import preparing
 from src.graph.nodes.presenter import Presenter
 from src.graph.nodes.quiz_generator import QuizGenerator
+from src.graph.nodes.quiz_tool_node import QuizToolNode
 from src.graph.nodes.word_entry_generator import WordEntryGenerator
 from src.graph.nodes.word_extractor import WordExtractor
 from src.graph.nodes.word_retriever import WordRetriever
-from src.graph.nodes.quiz_tool_node import QuizToolNode
-from src.tools.quiz import (
-    create_multiple_choice_question,
-    create_fill_in_blank_question,
-    create_true_false_question
-)
 from src.schemas.chat import Message
+from src.schemas.llms import (
+    CustomGoogleModelName,
+    GoogleModelName,
+    ModelSelection,
+    ModelType
+)
 from src.schemas.models import Action
-from src.schemas.state import State
+from src.schemas.state import State, SelectedModel
 from src.services.llm_client import create_llm
+from src.tools.quiz import (
+    create_fill_in_blank_question,
+    create_multiple_choice_question,
+    create_true_false_question,
+)
 from src.utils.graph import dump_messages
-from langgraph.checkpoint.memory import InMemorySaver
 
 
 class Assistant:
@@ -34,6 +45,24 @@ class Assistant:
         self.client=client
         self.model=model
         self._graph: Optional[CompiledStateGraph] = None
+
+    def select_model(self, option: Literal["fast", "medium", "pro"]):
+        if option == "pro":
+            ...
+        elif option == "medium":
+            ...
+        else:
+            c_gemini_20_flash = ModelSelection(model_type=ModelType.CUSTOM_GOOGLE.value, model_name=CustomGoogleModelName.GEMINI_20_FLASH.value)
+            gemini_20_flash = ModelSelection(model_type=ModelType.GOOGLE.value, model_name=GoogleModelName.GEMINI_20_FLASH.value)
+            gemini_25_flash = ModelSelection(model_type=ModelType.GOOGLE.value, model_name=GoogleModelName.GEMINI_25_FLASH.value)
+            return SelectedModel(
+                intent_classifier=      c_gemini_20_flash,
+                planner=                gemini_20_flash,
+                orchestrator=           c_gemini_20_flash,
+                word_entry_generator=   gemini_20_flash,
+                quiz_generator=         gemini_20_flash,
+                presenter=              gemini_25_flash
+            )
 
     async def create_graph(self, checkpointer=None):
         if self._graph is None:
