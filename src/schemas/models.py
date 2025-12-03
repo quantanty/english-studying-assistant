@@ -120,9 +120,6 @@ class GenerateQuizzesParams(BaseModel):
     words: List[str] = Field(..., description="List of vocabulary to learn through quizzes")
     instructions: Optional[str] = Field(..., description="Instruction to generate quizzes")
 
-class ExtractWordsAction(BaseModel):
-    action: Literal["extract_words"]
-    
 class DefineWordsAction(BaseModel):
     action: Literal["define_words"]
     params: DefineWordsParams
@@ -139,7 +136,6 @@ class EndAction(BaseModel):
     
 OrchestratorActionOutput = Annotated[
     Union[
-        ExtractWordsAction,
         DefineWordsAction,
         GenerateQuizzesAction,
         PresentAction,

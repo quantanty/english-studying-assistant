@@ -4,10 +4,11 @@ from src.utils.context import get_conversation_string
 
 from langchain_core.messages import SystemMessage, HumanMessage
 
-def preparing(orchestrator: Orchestrator):
+def preparing():
     def preparing_(state: State):
         try:
-            messages = state["messages"]
+            messages = state.get("messages")
+            assert messages
             assert isinstance(messages[-1], HumanMessage)
 
             orchestrator_messages = []

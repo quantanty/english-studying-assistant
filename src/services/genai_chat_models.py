@@ -1,33 +1,13 @@
-from collections.abc import Mapping, Callable
-from typing import Any, Dict, List, Optional, Sequence, Union, Literal, cast
-from typing_extensions import Self
-from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import (
-    AIMessage,
-    AIMessageChunk,
-    HumanMessage,
-    SystemMessage,
-    BaseMessage,
-    ToolMessage,
-    is_data_content_block
-)
-from langchain_core.outputs import ChatResult, ChatGeneration, ChatGenerationChunk
-from langchain_core.tools import BaseTool
-from langchain_core.messages.ai import UsageMetadata, add_usage, subtract_usage
+import logging
+from langchain_core.utils.pydantic import is_basemodel_subclass
+from collections.abc import Callable, Mapping
+from difflib import get_close_matches
+from typing import Any, Dict, List, Literal, Optional, Sequence, Union, cast
 
+from operator import itemgetter
+
+import proto
 from google import genai
-from google.genai.client import Client
-from google.genai.errors import ClientError, ServerError
-from google.genai.types import (
-    Candidate,
-    Content,
-    Part,
-    GenerationConfig,
-    GenerateContentConfig,
-    ThinkingConfig,
-    GenerateContentResponse,
-    HttpOptions
-)
 from google.api_core.exceptions import (
     FailedPrecondition,
     GoogleAPIError,
@@ -35,6 +15,44 @@ from google.api_core.exceptions import (
     ResourceExhausted,
     ServiceUnavailable,
 )
+from google.genai.client import Client
+from google.genai.errors import ClientError, ServerError
+from google.genai.types import (
+    Candidate,
+    Content,
+    GenerateContentConfig,
+    GenerateContentResponse,
+    GenerationConfig,
+    HttpOptions,
+    Part,
+    ThinkingConfig,
+)
+from langchain_core.language_models import BaseChatModel, LanguageModelInput
+from langchain_core.messages import (
+    AIMessage,
+    AIMessageChunk,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+    ToolMessage,
+    is_data_content_block,
+)
+from langchain_core.messages.ai import UsageMetadata, add_usage, subtract_usage
+from langchain_core.output_parsers import (
+    JsonOutputParser,
+    PydanticOutputParser,
+)
+from langchain_core.output_parsers.base import OutputParserLike
+from langchain_core.outputs import (
+    ChatGeneration,
+    ChatGenerationChunk,
+    ChatResult,
+)
+from langchain_core.runnables import Runnable, RunnablePassthrough
+from langchain_core.tools import BaseTool
+from langchain_core.utils import secret_from_env
+# from langchain_google_genai.chat_models import _convert_to_parts, _parse_chat_history
+from pydantic import BaseModel, Field, SecretStr, model_validator
 from tenacity import (
     before_sleep_log,
     retry,
@@ -42,12 +60,8 @@ from tenacity import (
     stop_after_attempt,
     wait_exponential,
 )
-import proto
-# from langchain_google_genai.chat_models import _convert_to_parts, _parse_chat_history
-from pydantic import BaseModel, Field, SecretStr, model_validator
-from langchain_core.utils import secret_from_env
-from difflib import get_close_matches
-import logging
+from typing_extensions import Self
+
 logger = logging.getLogger(__name__)
 
 _allowed_params_prediction_service_genai = [
@@ -467,9 +481,6 @@ class ChatGoogleGenAIJSON(_BaseGoogleGenAI, BaseChatModel):
             )
         return self
 
-    # ------------------------------
-    # Core LangChain method to override
-    # ------------------------------
 
     def _build_base_generation_config(
         self, stop: list[str] | None, **kwargs: Any
@@ -615,6 +626,44 @@ class ChatGoogleGenAIJSON(_BaseGoogleGenAI, BaseChatModel):
         )
         response = self.client.models.generate_content(**request)
         return _response_to_result(response)
+
+    def with_structured_output(
+        self,
+        schema: dict | type[BaseModel],
+        method: Literal["function_calling", "json_mode", "json_schema"]
+        | None = "json_schema",
+        *,
+        include_raw: bool = False,
+        **kwargs: Any,
+    ) -> Runnable[LanguageModelInput, dict | BaseModel]:
+        _ = kwargs.pop("strict", None)
+        if kwargs:
+            msg = f"Received unsupported arguments {kwargs}"
+            raise ValueError(msg)
+
+        parser: OutputParserLike
+
+        if not (isinstance(schema, type) and issubclass(schema, BaseModel)):
+            msg = f"Unsupported schema type {type(schema)}"
+            raise ValueError(msg)
+        schema_json = schema.model_json_schema()
+        
+        llm = self.bind(
+            response_mime_type="application/json",
+            response_json_schema=schema_json
+        )
+        parser = PydanticOutputParser(pydantic_object=cast(type[BaseModel], schema))
+
+        if include_raw:
+            parser_with_fallback = RunnablePassthrough.assign(
+                parsed=itemgetter("raw") | parser, parsing_error=lambda _: None
+            ).with_fallbacks(
+                [RunnablePassthrough.assign(parsed=lambda _: None)],
+                exception_key="parsing_error",
+            )
+            return {"raw": llm} | parser_with_fallback
+        
+        return llm | parser
 
     # ------------------------------------------------------
     # Required by LangChain (for hierarchy and serialization)

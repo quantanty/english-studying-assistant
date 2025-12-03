@@ -40,6 +40,6 @@ def get_model(model_type: str, model_name: str):
         raise ValueError(f"Model type {model_type} does not support model name {model_name}")
 
     try:
-        return LLM_CLASS[model_type](model_name)
+        return LLM_CLASS[model_type](model=model_name)
     except ValueError as e:
         raise ValueError(f"Unsupported model name {model_name} with type {model_type}")

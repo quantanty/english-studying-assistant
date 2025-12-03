@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 class WordEntryGenerator:
     def __init__(self, llm):
-        self.llm = llm.with_structured_output(WordEntry)#, retry=True, max_retries=3)
         self.system = WORD_ENTRY_GENERATOR_SYSTEM
         self.user = WORD_ENTRY_GENERATOR_USER
 

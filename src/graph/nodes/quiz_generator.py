@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 class QuizGenerator:
     def __init__(self, llm):
-        self.llm = llm
         self.system = QUIZ_GENERATOR_SYSTEM
         self.user = QUIZ_GENERATOR_USER
 

@@ -43,10 +43,11 @@ class State(TypedDict, total=False):
     # ---- Intermediate steps ____
     preparation_result: Literal["success", "error"]
     intent: Literal["learn_words", "general_chat"]
+    words: List[str]
+    should_create_quizzes: bool
     plan: List[PlanStep]
     orchestrator_observation: List[str]
     step_state: StepState
-    words: List[str]
     words_to_define: List[str]
     collected_data: Dict[str, List[str]]
     word_entries: Dict[str, WordEntryState]

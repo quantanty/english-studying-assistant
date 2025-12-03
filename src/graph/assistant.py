@@ -19,7 +19,6 @@ from src.graph.nodes.presenter import Presenter
 from src.graph.nodes.quiz_generator import QuizGenerator
 from src.graph.nodes.quiz_tool_node import QuizToolNode
 from src.graph.nodes.word_entry_generator import WordEntryGenerator
-from src.graph.nodes.word_extractor import WordExtractor
 from src.graph.nodes.word_retriever import WordRetriever
 from src.schemas.chat import Message
 from src.schemas.llms import (
@@ -40,55 +39,33 @@ from src.utils.graph import dump_messages
 
 
 class Assistant:
-    def __init__(self, llm, client=None, model=None):
-        self.llm = llm
-        self.client=client
-        self.model=model
+    def __init__(self, default_model: SelectedModel):
+        self.default_model=default_model
         self._graph: Optional[CompiledStateGraph] = None
 
-    def select_model(self, option: Literal["fast", "medium", "pro"]):
-        if option == "pro":
-            ...
-        elif option == "medium":
-            ...
-        else:
-            c_gemini_20_flash = ModelSelection(model_type=ModelType.CUSTOM_GOOGLE.value, model_name=CustomGoogleModelName.GEMINI_20_FLASH.value)
-            gemini_20_flash = ModelSelection(model_type=ModelType.GOOGLE.value, model_name=GoogleModelName.GEMINI_20_FLASH.value)
-            gemini_25_flash = ModelSelection(model_type=ModelType.GOOGLE.value, model_name=GoogleModelName.GEMINI_25_FLASH.value)
-            return SelectedModel(
-                intent_classifier=      c_gemini_20_flash,
-                planner=                gemini_20_flash,
-                orchestrator=           c_gemini_20_flash,
-                word_entry_generator=   gemini_20_flash,
-                quiz_generator=         gemini_20_flash,
-                presenter=              gemini_25_flash
-            )
+        # TODO: validate default models
 
     async def create_graph(self, checkpointer=None):
         if self._graph is None:
-            llm = self.llm
             quiz_tools = [create_multiple_choice_question, create_fill_in_blank_question, create_true_false_question]
 
             graph_builder = StateGraph(State)
 
-            orchestrator = Orchestrator(llm)
-            graph_builder.add_node("preparing", preparing(orchestrator))
+            graph_builder.add_node("preparing", preparing())
 
-            graph_builder.add_node("intent_classifier", IntentClassifier(llm, self.client, self.model))
-            graph_builder.add_node("planner", Planner(llm))
-            graph_builder.add_node("orchestrator", orchestrator)
-            graph_builder.add_node("word_entry_generator", WordEntryGenerator(llm))
-            graph_builder.add_node("presenter", Presenter(llm))
-            graph_builder.add_node("word_extractor", WordExtractor(llm))
-            graph_builder.add_node("word_retriever", WordRetriever(llm, []))
-            graph_builder.add_node("quiz_generator", QuizGenerator(llm))
+            graph_builder.add_node("intent_classifier", IntentClassifier(self.default_model["intent_classifier"]))
+            graph_builder.add_node("planner", Planner(self.default_model["planner"]))
+            graph_builder.add_node("orchestrator", Orchestrator(self.default_model["orchestrator"]))
+            graph_builder.add_node("word_entry_generator", WordEntryGenerator(self.default_model["word_entry_generator"]))
+            graph_builder.add_node("presenter", Presenter(self.default_model["presenter"]))
+            graph_builder.add_node("word_retriever", WordRetriever(self.default_model["planner"], []))
+            graph_builder.add_node("quiz_generator", QuizGenerator(self.default_model["quiz_generator"]))
             graph_builder.add_node("quiz_tools", QuizToolNode(quiz_tools))
             
             graph_builder.add_edge(START, "preparing")
             graph_builder.add_edge("preparing", "intent_classifier")
             # graph_builder.add_edge("intent_classifier", "planner")
             graph_builder.add_edge("planner", "orchestrator")
-            graph_builder.add_edge("word_extractor", "orchestrator")
             graph_builder.add_edge("word_retriever", "word_entry_generator")
             graph_builder.add_edge("word_entry_generator", "orchestrator")
             graph_builder.add_edge("quiz_tools", "quiz_generator")
@@ -107,7 +84,6 @@ class Assistant:
                 "orchestrator",
                 after_orchestrator,
                 {
-                    "extract_words": "word_extractor",
                     "define_words": "word_retriever",
                     "generate_quizzes": "quiz_generator",
                     "present": "presenter",
@@ -129,7 +105,10 @@ class Assistant:
         return self._graph
     
     async def get_stream_response(
-        self, messages: List[Message], session_id: str
+        self,
+        messages: List[Message],
+        session_id: str,
+        selected_model: SelectedModel | None = None,
     ) -> AsyncGenerator[str, None]:
         config = {
             "configurable": {"thread_id": session_id}
@@ -140,7 +119,7 @@ class Assistant:
         
         try:
             async for chunk in self._graph.astream(
-                {"messages": dump_messages(messages)}, config=config, stream_mode="custom" # type: ignore
+                {"messages": dump_messages(messages), "selected_model": selected_model}, config=config, stream_mode="custom" # type: ignore
             ):
                 try:
                     if "presenter" in chunk:

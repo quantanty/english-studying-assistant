@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class WordRetriever:
     def __init__(self, llm, tools):
         self.tools = tools
-        self.llm = llm.bind_tools(tools)
+        # self.llm = llm.bind_tools(tools)
     
     # TODO: retriever logic
     def __call__(self, state: State) -> State:

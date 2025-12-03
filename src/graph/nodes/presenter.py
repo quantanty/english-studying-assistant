@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 class Presenter:
     def __init__(self, llm):
-        self.llm = llm
         self.system = PRESENTER_SYSTEM
         self.user = PRESENTER_USER
 
