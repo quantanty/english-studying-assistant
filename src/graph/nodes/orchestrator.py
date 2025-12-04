@@ -1,6 +1,5 @@
 import logging
 
-
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from src.prompts import (
@@ -11,9 +10,9 @@ from src.prompts import (
 from src.schemas.models import Action, OrchestratorOutput
 from src.schemas.state import State, StepState
 from src.services.llm_client import get_model
+from src.utils.context import get_intent_string
 from src.utils.human_in_the_loop import ask_permission
 from src.utils.state_utils import get_word_defining_results
-from src.utils.context import get_intent_string
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +46,7 @@ class Orchestrator:
             self._append_feed(state, step_state, orchestrator_messages)
         
         response = await llm_structured_output.ainvoke(orchestrator_messages)
-        orchestrator_messages.append(AIMessage(content=response["raw"]))
+        orchestrator_messages.append(response["raw"])
         parsed = response["parsed"]
         step_state = StepState(
             action_type=parsed.result.action,

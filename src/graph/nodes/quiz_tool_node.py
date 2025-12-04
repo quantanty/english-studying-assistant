@@ -1,6 +1,8 @@
-from langchain_core.messages import ToolMessage, AIMessage
-from src.schemas.state import State
+from langchain_core.messages import AIMessage, ToolMessage
+
 from src.schemas.models import QuizQuestion
+from src.schemas.state import State
+
 
 class QuizToolNode:
     def __init__(self, tools: list):

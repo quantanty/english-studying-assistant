@@ -114,7 +114,7 @@ class PlannerOutput(BaseModel):
     steps: List[PlanStep]
 
 class DefineWordsParams(BaseModel):
-    words: List[str]
+    words: List[str] = Field(..., description="List of words to define")
 
 class GenerateQuizzesParams(BaseModel):
     words: List[str] = Field(..., description="List of vocabulary to learn through quizzes")

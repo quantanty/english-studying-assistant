@@ -1,4 +1,5 @@
 from src.schemas.state import State
+from src.schemas.models import DefineWordsParams
 
 from langchain_core.messages import HumanMessage, AIMessage
 import textwrap
@@ -38,3 +39,10 @@ def get_intent_string(state: State):
             intent_string += f"\nshould create quizzes: {str(should_create_quizzes)}"
 
     return intent_string
+
+def get_words_to_define(state: State):
+    step_state = state.get("step_state")
+    assert step_state
+    params = step_state.get("params")
+    assert isinstance(params, DefineWordsParams)
+    return params.words

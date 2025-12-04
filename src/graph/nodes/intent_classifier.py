@@ -42,11 +42,11 @@ class IntentClassifier:
         parsed = response["parsed"]
         # TODO: retry mechanism
 
-        
-        intent = parsed.result.intent
-        if isinstance(parsed, LearnWordsIntent):
-            words = parsed.words
-            should_create_quizzes = parsed.should_create_quizzes
+        result = parsed.result
+        intent = result.intent
+        if isinstance(result, LearnWordsIntent):
+            words = result.words
+            should_create_quizzes = result.should_create_quizzes
             return {
                 "intent": intent,
                 "words": words,

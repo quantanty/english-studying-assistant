@@ -59,7 +59,7 @@ class Assistant:
             graph_builder.add_node("word_entry_generator", WordEntryGenerator(self.default_model["word_entry_generator"]))
             graph_builder.add_node("presenter", Presenter(self.default_model["presenter"]))
             graph_builder.add_node("word_retriever", WordRetriever(self.default_model["planner"], []))
-            graph_builder.add_node("quiz_generator", QuizGenerator(self.default_model["quiz_generator"]))
+            graph_builder.add_node("quiz_generator", QuizGenerator(self.default_model["quiz_generator"], quiz_tools))
             graph_builder.add_node("quiz_tools", QuizToolNode(quiz_tools))
             
             graph_builder.add_edge(START, "preparing")

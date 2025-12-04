@@ -7,7 +7,7 @@ from typing import Annotated, List, Dict, Any, Optional, Literal
 from typing_extensions import TypedDict, Annotated
 from .llms import ModelSelection
 
-class WordEntryState(TypedDict):
+class WordEntryState(TypedDict, total=False):
     word: str
     phonetic: Optional[str]
     meanings: List[Meaning]
@@ -17,7 +17,7 @@ class WordEntryState(TypedDict):
 
 class StepState(TypedDict, total=False):
     action_type: Literal[
-        "extract_words", "define_words", "generate_quizzes", "present", "end"
+        "define_words", "generate_quizzes", "present", "end"
     ]
     params: Any
     success: Optional[bool]
