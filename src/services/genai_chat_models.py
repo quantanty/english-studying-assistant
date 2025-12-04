@@ -626,6 +626,28 @@ class ChatGoogleGenAIJSON(_BaseGoogleGenAI, BaseChatModel):
         )
         response = self.client.models.generate_content(**request)
         return _response_to_result(response)
+        
+    async def _agenerate(
+        self,
+        messages: List[BaseMessage],
+        stop: Optional[List[str]] = None,
+        run_manager = None,
+        *,
+        generation_config: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> ChatResult:
+        if self.client is None:
+            msg = "Client not initialized."
+            raise ValueError(msg)
+        
+        request = self._prepare_request(
+            messages,
+            stop=stop,
+            generation_config=generation_config,
+            **kwargs,
+        )
+        response = await self.client.aio.models.generate_content(**request)
+        return _response_to_result(response)
 
     def with_structured_output(
         self,
