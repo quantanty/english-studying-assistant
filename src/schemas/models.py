@@ -104,6 +104,7 @@ class IntentClassifierOutput(BaseModel):
     )
     
     result: Intent = Field(..., description="Classified intent with additional parameters (if any)")
+    instruction: Optional[str] = Field(..., description="Instruction (if any) about how to generate quizzes, whether to search dictionary or not, or how to present the answer, etc. Extracted from user's message")
     
     
 class PlanStep(BaseModel):
