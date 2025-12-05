@@ -11,7 +11,7 @@ system: |-
 
   <constraints>
   - At least one meaning must be included.
-  - Avoid redundancy between meanigns and collocations.
+  - Avoid redundancy between meanings and collocations.
   - All output must be valid JSON compatible with the schema.
   </constraints>
 
