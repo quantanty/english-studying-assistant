@@ -1,4 +1,5 @@
 import logging
+from src.utils.context import write_report
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
@@ -35,6 +36,9 @@ class QuizGenerator:
         llm = llm.bind_tools(self.tools)
         
         qgen_messages = state.get("qgen_messages", [])
+        messages = state.get("messages")
+        assert messages and isinstance(messages[-1], HumanMessage)
+        user_message = messages[-1].content
 
         if not qgen_messages:
             step_state = state.get("step_state")
@@ -45,17 +49,23 @@ class QuizGenerator:
             instruction = params.instructions
             retrieved_information = state.get("collected_data")
 
-            qgen_messages = self.construct_initial_feed(instruction, words, retrieved_information)
+            qgen_messages = self.construct_initial_feed(instruction, words, retrieved_information, user_message)
 
         response = await llm.ainvoke(qgen_messages)
-        qgen_messages.append(response)
+
+        if response.tool_calls:
+            qgen_messages.append(response)
+        else:
+            report_string = response.content
+            step_state = write_report(state, report_string)
+            return {"step_state": step_state}
 
         return {"qgen_messages": qgen_messages}
         
         
-    def construct_initial_feed(self, instruction, words, retrieved_information):
+    def construct_initial_feed(self, instruction, words, retrieved_information, user_message):
         feed = [
             SystemMessage(content=self.system),
-            HumanMessage(content=self.user.format(words=words, instruction=instruction, retrieved_information=retrieved_information))
+            HumanMessage(content=self.user.format(words=words, instruction=instruction, retrieved_information=retrieved_information, user_message=user_message))
         ]
         return feed

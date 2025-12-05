@@ -22,6 +22,7 @@ class QuizToolNode:
                 tool_result = self.tools_by_name[tool_call["name"]].invoke(tool_call["args"])
                 if isinstance(tool_result, QuizQuestion):
                     content=f"Successfully created a {tool_result.type} quiz"
+                    quizzes.append(tool_result)
                 else:
                     content = tool_result
                 qgen_messages.append(
