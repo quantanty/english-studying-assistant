@@ -6,7 +6,7 @@ from src.prompts import WORD_ENTRY_GENERATOR_SYSTEM, WORD_ENTRY_GENERATOR_USER
 from src.schemas.models import Meaning, WordEntry
 from src.schemas.state import State, WordEntryState
 from src.services.llm_client import get_model
-from src.utils.context import get_words_to_define
+from src.utils.context import get_words_to_define, write_report
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +28,20 @@ class WordEntryGenerator:
             llm = get_model(model_type=self.default_model.model_type, model_name=self.default_model.model_name)
         llm_structured_output = llm.with_structured_output(WordEntry)
 
+        report_string = "Report from Word Entry Generator agent:"
+
         words_to_define = get_words_to_define(state)
         collected_data = state.get("collected_data", {})
 
-        if not words_to_define or not collected_data:
-            return {}
+        # if not words_to_define or not collected_data:
+        #     return {}
+        if not words_to_define:
+            report_string += "\nI didn't receive any words to define."
+            step_state = write_report(state, report_string)
+            return {"step_state": step_state}
         
         word_entries = state.get("word_entries", {})
+        
 
         for word in words_to_define:
             feed = self._construct_feed(word, collected_data)
@@ -45,11 +52,15 @@ class WordEntryGenerator:
                     result="success",
                     **response.model_dump()
                 )
+                report_string += f"\nSuccesfully created a word entry for the word '{word}'."
             except Exception as e:
                 word_entries[word] = WordEntryState(result="error")
+                report_string += f"\nError while create a word entry for the word '{word}': {str(e)}"
 
+        step_state = write_report(state, report_string)
         return {
-            "word_entries": word_entries
+            "word_entries": word_entries,
+            "step_state": step_state,
         }
 
     def _construct_feed(self, word: str, collected_data: dict):
