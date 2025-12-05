@@ -42,7 +42,6 @@ class Orchestrator:
         else:
             step_state = state.get("step_state")
             assert step_state
-            self._construct_observation_string(state, step_state)
             self._append_feed(state, step_state, orchestrator_messages)
         
         response = await llm_structured_output.ainvoke(orchestrator_messages)
@@ -60,34 +59,6 @@ class Orchestrator:
         }
 
 
-    def _construct_observation_string(self, state: State, step_state: StepState):
-        observation_string = ""
-
-        action_type = step_state.get("action_type")
-        
-        if action_type == "define_words":
-            words_to_define = state.get("words_to_define", [])
-            word_entries = state.get("word_entries", {})
-            if not words_to_define:
-                observation_string += "There're no words to define."
-            else:
-                for word in words_to_define:
-                    entry = word_entries.get(word)
-                    if not entry:
-                        observation_string += f"Error while defining \"{word}\".\n"
-                    else:
-                        result  = entry.get("result", "error")
-                        if result == "success":
-                            observation_string += f"Successfully defined \"{word}\".\n"
-                        else:
-                            observation_string += f"Error while defining \"{word}\".\n"
-                
-        elif action_type == "generate_quizzes":
-            # This can be done by Quiz Generator llm
-            ...
-
-        step_state["observation"] = observation_string
-
     def _init_feed(self, state: State):
         intent_string = get_intent_string(state)
         plan = state.get("plan")
@@ -99,12 +70,12 @@ class Orchestrator:
     
     def _append_feed(self, state: State, step_state: StepState, feed):
         type = step_state.get("action_type")
-        success = step_state.get("success")
+        # success = step_state.get("success")
         observation = step_state.get("observation")
         feed.append(HumanMessage(
             content=self.user_2.format(
                 type=type,
-                success=success,
+                # success=success,
                 observation=observation
             )
         ))

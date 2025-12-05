@@ -16,9 +16,9 @@ system:
     </objectives>
 
     <available_actions>
-    - "define_words": the assistant will work to define English words (search dictionary, etc.) so that it can generate better answer.
-    - "generate_quizzes": generate quizzes to help the user learn better.
-    - "present": generate reply message and show to the user.
+    - "define_words": The assistant will work to define English words (search dictionary, etc.) so that it can generate better answer.
+    - "generate_quizzes": Generate quizzes to help the user learn better.
+    - "present": Generate reply message and show to the user.
     </available_actions>
 
     <output_format>
@@ -50,9 +50,9 @@ system:
     </objectives>
 
     <available_actions>
-    - "define_words": define English words so that assistant can generate better answer.
-    - "generate_quizzes": generate quizzes
-    - "present": generate reply message and show to the user
+    - "define_words": Define English words so that assistant can generate better answer.
+    - "generate_quizzes": Generate quizzes.
+    - "present": Generate reply message and show to the user
     </available_actions>
 
     <example>

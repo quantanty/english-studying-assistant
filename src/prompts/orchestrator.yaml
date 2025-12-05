@@ -21,10 +21,10 @@ system: |-
   </objectives>
 
   <available_actions>
-  - "define_words": define English words so that the assistant can generate better answer.
-  - "generate_quizzes": generate quizzes, you can specify the words and give instructions to Quiz Generator agent.
-  - "present": generate reply message.
-  - "end": if something went wrong, end the workflow for safety reasons.
+  - "define_words": Define English words so that the assistant can generate better answer.
+  - "generate_quizzes": Generate quizzes, you can specify the words and give instructions to Quiz Generator agent.
+  - "present": Generate reply message.
+  - "end": If something went wrong, end the workflow for safety reasons.
   </available_actions>
 
   <execution_rules>
@@ -52,8 +52,6 @@ user:
   next:
     template: |-
       <action type="{type}"/>
-      <step_result success="{success}">
-        <observation>
+      <observation>
       {observation}
-        </observation>
-      </step_result>
+      </observation>
