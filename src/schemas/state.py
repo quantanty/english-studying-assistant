@@ -45,6 +45,7 @@ class State(TypedDict, total=False):
     intent: Literal["learn_words", "general_chat"]
     words: List[str]
     should_create_quizzes: bool
+    instruction: Optional[str]
     plan: List[PlanStep]
     orchestrator_observation: List[str]
     step_state: StepState

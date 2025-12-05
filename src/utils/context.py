@@ -1,4 +1,4 @@
-from src.schemas.state import State
+from src.schemas.state import State, WordEntryState
 from src.schemas.models import DefineWordsParams
 
 from langchain_core.messages import HumanMessage, AIMessage
@@ -38,6 +38,10 @@ def get_intent_string(state: State):
         if should_create_quizzes is not None:
             intent_string += f"\nshould create quizzes: {str(should_create_quizzes)}"
 
+    instruction = state.get("instruction")
+    if instruction:
+        intent_string += f"\ninstruction: {instruction}"
+
     return intent_string
 
 def get_words_to_define(state: State):
@@ -46,3 +50,15 @@ def get_words_to_define(state: State):
     params = step_state.get("params")
     assert isinstance(params, DefineWordsParams)
     return params.words
+
+def write_report(state: State, report_string: str):
+    step_state = state.get("step_state", {})
+    step_state["observation"] = report_string
+    return step_state
+
+def get_word_defining_results(word_entries: dict[str, WordEntryState]) -> str:
+    result_string = ""
+    for word, entry in word_entries.items():
+        result = entry.get("result", "error")
+        result_string += f"'{word}': {result}\n"
+    return result_string

@@ -44,6 +44,7 @@ class IntentClassifier:
 
         result = parsed.result
         intent = result.intent
+        instruction = parsed.instruction
         if isinstance(result, LearnWordsIntent):
             words = result.words
             should_create_quizzes = result.should_create_quizzes
@@ -51,9 +52,10 @@ class IntentClassifier:
                 "intent": intent,
                 "words": words,
                 "should_create_quizzes": should_create_quizzes,
+                "instruction": instruction,
             }
         
-        return {"intent": intent}
+        return {"intent": intent, "instruction": instruction}
     
     def _construct_feed(self, messages):
         feed = [
