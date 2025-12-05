@@ -39,9 +39,6 @@ ORCHESTRATOR_SYSTEM = _get("orchestrator.system")
 ORCHESTRATOR_USER_START = _get("orchestrator.user.start")
 ORCHESTRATOR_USER_NEXT = _get("orchestrator.user.next")
 
-WORD_EXTRACTOR_SYSTEM = _get("word_extractor.system")
-WORD_EXTRACTOR_USER = _get("word_extractor.user")
-
 WORD_ENTRY_GENERATOR_SYSTEM = _get("word_entry_generator.system")
 WORD_ENTRY_GENERATOR_USER = _get("word_entry_generator.user")
 
