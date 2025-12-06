@@ -41,7 +41,6 @@ class WordEntryGenerator:
             return {"step_state": step_state}
         
         word_entries = state.get("word_entries", {})
-        
 
         for word in words_to_define:
             feed = self._construct_feed(word, collected_data)

@@ -11,3 +11,5 @@ pydantic[email]
 python-jose[cryptography]
 python-multipart
 google-genai
+langgraph-checkpoint-postgres
+asgiref
