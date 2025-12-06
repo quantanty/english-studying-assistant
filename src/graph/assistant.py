@@ -1,10 +1,16 @@
 import logging
 from typing import Any, AsyncGenerator, Dict, List, Literal, Optional
+from urllib.parse import quote_plus
 
+from asgiref.sync import sync_to_async
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.graph import END, START
 from langgraph.graph.state import CompiledStateGraph, StateGraph
+from langgraph.types import StateSnapshot
+from psycopg_pool import AsyncConnectionPool
 
+from src.config import settings
 from src.graph.edges.decision import (
     after_intent_classifier,
     after_orchestrator,
@@ -25,10 +31,10 @@ from src.schemas.llms import (
     CustomGoogleModelName,
     GoogleModelName,
     ModelSelection,
-    ModelType
+    ModelType,
 )
 from src.schemas.models import Action
-from src.schemas.state import State, SelectedModel
+from src.schemas.state import SelectedModel, State
 from src.services.llm_client import create_llm
 from src.tools.quiz import (
     create_fill_in_blank_question,
@@ -42,8 +48,35 @@ class Assistant:
     def __init__(self, default_model: SelectedModel):
         self.default_model=default_model
         self._graph: Optional[CompiledStateGraph] = None
+        self._connection_pool: Optional[AsyncConnectionPool] = None
 
         # TODO: validate default models
+
+    async def _get_connection_pool(self) -> AsyncConnectionPool:
+        if self._connection_pool is None:
+            try:
+                max_size = settings.POSTGRES_POOL_SIZE
+
+                connection_url = (
+                    "postgresql://"
+                    f"{quote_plus(settings.POSTGRES_USER)}:{quote_plus(settings.POSTGRES_PASSWORD)}"
+                    f"@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
+                )
+
+                self._connection_pool = AsyncConnectionPool(
+                    connection_url,
+                    open=False,
+                    max_size=max_size,
+                    kwargs={
+                        "autocommit": True,
+                        "connect_timeout": 5,
+                        "prepare_threshold": None,
+                    }
+                )
+                await self._connection_pool.open()
+            except Exception as e:
+                raise e
+        return self._connection_pool
 
     async def create_graph(self, checkpointer=None):
         if self._graph is None:
@@ -100,6 +133,13 @@ class Assistant:
                 }
             )
 
+            if checkpointer is None:
+                connection_pool = await self._get_connection_pool()
+                if connection_pool:
+                    checkpointer = AsyncPostgresSaver(connection_pool)
+                    await checkpointer.setup()
+                else:
+                    raise Exception("Connection pool initialization failed")
             self._graph = graph_builder.compile(checkpointer)
         
         return self._graph
@@ -108,6 +148,7 @@ class Assistant:
         self,
         messages: List[Message],
         session_id: str,
+        user_id: Optional[str] = None,
         selected_model: SelectedModel | None = None,
     ) -> AsyncGenerator[str, None]:
         config = {
@@ -115,7 +156,7 @@ class Assistant:
         }
         
         if self._graph is None:
-            self._graph = await self.create_graph(checkpointer=InMemorySaver())
+            self._graph = await self.create_graph()
         
         try:
             async for chunk in self._graph.astream(
@@ -132,7 +173,23 @@ class Assistant:
     async def get_chat_history(
         self, session_id: str
     ):
-        ...
+        if self._graph is None:
+            self._graph = await self.create_graph()
+            
+            state: StateSnapshot = await sync_to_async(self._graph.get_state)(
+                config={"configurable": {"thread_id": session_id}}
+            )
+            return state.values["messages"] if state.values else []
 
     async def clear_chat_history(self, session_id: str):
-        ...
+        try:
+            conn_pool = await self._get_connection_pool()
+            
+            async with conn_pool.connection() as conn:
+                for table in settings.CHECKPOINT_TABLES:
+                    try:
+                        await conn.execute(f"DELETE FROM {table} WHERE thread_id = %s", (session_id,))
+                    except Exception as e:
+                        raise
+        except Exception as e:
+            raise
