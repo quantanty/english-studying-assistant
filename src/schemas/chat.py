@@ -1,15 +1,8 @@
-
 import re
-from typing import (
-    List,
-    Literal,
-)
+from typing import List, Literal
 
-from pydantic import (
-    BaseModel,
-    Field,
-    field_validator,
-)
+from pydantic import BaseModel, Field, field_validator
+
 
 class Message(BaseModel):
     role: Literal["user", "assistant", "system"] = Field(..., description="The role of the message sender")
@@ -25,3 +18,6 @@ class ChatRequest(BaseModel):
 class StreamResponse(BaseModel):
     content: str = Field(default="", description="The content of the current chunk")
     done: bool = Field(default=False, description="Whether the stream is complete")
+
+class ChatResponse(BaseModel):
+    messages: List[Message] = Field(..., description="List of messages in the conversation")
