@@ -122,5 +122,13 @@ class DatabaseService:
                 return True
         except Exception as e:
             return False
+        
+    async def can_user_acccess_session(self, user_id: int, session_id: str):
+        chat_session = await self.get_session(session_id)
+        if not chat_session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        return chat_session.user_id == user_id
+        
 
 database_service = DatabaseService()

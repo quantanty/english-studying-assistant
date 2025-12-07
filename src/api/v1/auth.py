@@ -148,11 +148,7 @@ async def update_session_name(
         sanitized_session_id = sanitize_string(session_id)
         sanitized_name = sanitize_string(name)
 
-        chat_session = await database_service.get_session(session_id)
-        if not chat_session:
-            raise HTTPException(status_code=404, detail="Session not found")
-        
-        if chat_session.user_id != user.id:
+        if not await database_service.can_user_acccess_session(user.id, sanitized_session_id):
             raise HTTPException(status_code=403, detail="You do not have permission to access this chat session.")
 
         session = await database_service.update_session_name(sanitized_session_id, sanitized_name)
@@ -166,11 +162,7 @@ async def update_session_name(
 async def delete_session(session_id: str, user: User = Depends(get_current_user)):
     try:
         sanitized_session_id = sanitize_string(session_id)
-        chat_session = await database_service.get_session(sanitized_session_id)
-        if not chat_session:
-            raise HTTPException(status_code=404, detail="Session not found")
-        
-        if chat_session.user_id != user.id:
+        if not await database_service.can_user_acccess_session(user.id, sanitized_session_id):
             raise HTTPException(status_code=403, detail="You do not have permission to access this chat session.")
 
         await database_service.delete_session(sanitized_session_id)
