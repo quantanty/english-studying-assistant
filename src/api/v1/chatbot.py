@@ -9,7 +9,6 @@ from src.graph.assistant import Assistant
 from src.models.session import Session
 from src.models.user import User
 from src.schemas.chat import ChatRequest, ChatResponse, Message, StreamResponse
-from src.services.llm_client import create_llm
 from src.utils.graph import select_model
 from langchain_core.messages import convert_to_openai_messages
 from src.services.database import database_service

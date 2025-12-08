@@ -97,6 +97,10 @@ class Settings:
         self.DEFAULT_LLM_TEMPERATURE = float(os.getenv("DEFAULT_LLM_TEMPERATURE", "0.2"))
         self.MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2000"))
         self.MAX_LLM_CALL_RETRIES = int(os.getenv("MAX_LLM_CALL_RETRIES", "3"))
+
+        self.LLAMACPP_URL = {
+            "xLAM-2-1b-fc-r": os.getenv("LLAMACPP_XLAM_2_1B_URL")
+        }
         
         # JWT Configuration
         self.JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")

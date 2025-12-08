@@ -35,7 +35,6 @@ from src.schemas.llms import (
 )
 from src.schemas.models import Action
 from src.schemas.state import SelectedModel, State
-from src.services.llm_client import create_llm
 from src.tools.quiz import (
     create_fill_in_blank_question,
     create_multiple_choice_question,

@@ -13,9 +13,13 @@ class CustomGoogleModelName(StrEnum):
     GEMINI_25_FLASH = "gemini-2.5-flash"
     GEMINI_25_FLASH_LITE = "gemini-2.5-flash-lite"
 
+class LlamaCppModelName(StrEnum):
+    XLAM_2_1B = "xLAM-2-1b-fc-r"
+
 class ModelType(StrEnum):
     GOOGLE = "google"
     CUSTOM_GOOGLE = "custom_google"
+    LLAMA_CPP = "llama_cpp"
     
 class ModelSelection(BaseModel):
     model_type: str
