@@ -2,6 +2,8 @@ import logging
 
 from google.genai import types
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from src.schemas.llms import ModelType
+import json
 
 from src.prompts import INTENT_CLASSIFIER_SYSTEM, INTENT_CLASSIFIER_USER
 from src.schemas.llms import ModelSelection
@@ -30,14 +32,21 @@ class IntentClassifier:
         else:
             model_selection = None
         if model_selection:
-            llm = get_model(model_type=model_selection.model_type, model_name=model_selection.model_name)
+            model_type=model_selection.model_type
+            model_name=model_selection.model_name
+            llm = get_model(model_type=model_type, model_name=model_name)
         else:
-            llm = get_model(model_type=self.default_model.model_type, model_name=self.default_model.model_name)
+            model_type=self.default_model.model_type
+            model_name=self.default_model.model_name
+            llm = get_model(model_type=model_type, model_name=model_name)
         llm_structured_output = llm.with_structured_output(IntentClassifierOutput, include_raw=True)
         
         conversation = get_conversation_string(state)
-        
-        feed = self._construct_feed(conversation)
+        if model_type == ModelType.LLAMA_CPP.value:
+            schema = "\n<output_schema>" + json.dumps(IntentClassifierOutput.model_json_schema(), indent=4) + "</output_schema>"
+        else:
+            schema = ""
+        feed = self._construct_feed(schema, conversation)
         response = llm_structured_output.invoke(feed)
         parsed = response["parsed"]
         # TODO: retry mechanism
@@ -57,9 +66,9 @@ class IntentClassifier:
         
         return {"intent": intent, "instruction": instruction}
     
-    def _construct_feed(self, messages):
+    def _construct_feed(self, schema, messages):
         feed = [
-            SystemMessage(content=self.system),
+            SystemMessage(content=self.system.format(schema=schema)),
             HumanMessage(content=self.user.format(conversation=messages))
         ]
         return feed

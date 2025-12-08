@@ -11,6 +11,7 @@ system: |-
 
   <available_intents>
   - "learn_words": The user explicitly asks to learn, review, practice, or inquire about vocabulary, definitions, usage, or examples of English words/phrases.
+    If the intent is "learn_words", you should also provide `words` and `should_create_quizzes` fields.
   - "general_chat": All other cases, including greetings, casual conversation, small talk, or non-learning-specific inquiries.
   </available_intents>
 
@@ -19,7 +20,20 @@ system: |-
   - Usually, the last user's message is the most important, determine user's intent based on this message.
   - If the last user's message does not clearly expressing intentions, try look up on the previous user/assistant messages.
   </classification_rules>
+  
+  <word_extraction_rules>
+  Only extract words/phrases that the user wants to learn and need to be defined using dictionary.
+  Example:
+  user: I know the word "condition", but I don't know "circumstance".
+  words: ["circumstance"]
 
+  user: Is “Spring” always capitalized in English?
+  words: []
+
+  user: What does “break the ice” mean?
+  words: ["break the ice"]
+  </word_extraction_rules>
+  {schema}
   Ensure your **reasoning** is a concise, internal justification focusing on the key evidence from the user's query.
 
 user: |-
