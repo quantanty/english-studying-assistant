@@ -46,7 +46,7 @@ class QuizGenerator:
             params = step_state.get("params")
             assert isinstance(params, GenerateQuizzesParams)
             words = params.words
-            instruction = params.instructions
+            instruction = params.instructions_for_quiz_generator_agent
             retrieved_information = state.get("collected_data")
 
             qgen_messages = self.construct_initial_feed(instruction, words, retrieved_information, user_message)

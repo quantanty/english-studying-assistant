@@ -1,4 +1,5 @@
 import logging
+from typing import cast
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
@@ -7,6 +8,7 @@ from src.prompts import (
     ORCHESTRATOR_USER_NEXT,
     ORCHESTRATOR_USER_START,
 )
+from src.schemas.llms import ModelType
 from src.schemas.models import Action, OrchestratorOutput
 from src.schemas.state import State, StepState
 from src.services.llm_client import get_model
@@ -31,10 +33,13 @@ class Orchestrator:
         else:
             model_selection = None
         if model_selection:
-            llm = get_model(model_type=model_selection.model_type, model_name=model_selection.model_name)
+            model_type=model_selection.model_type
+            model_name=model_selection.model_name
+            llm = get_model(model_type=model_type, model_name=model_name)
         else:
-            llm = get_model(model_type=self.default_model.model_type, model_name=self.default_model.model_name)
-        llm_structured_output = llm.with_structured_output(OrchestratorOutput, include_raw=True)
+            model_type=self.default_model.model_type
+            model_name=self.default_model.model_name
+            llm = get_model(model_type=model_type, model_name=model_name)
         
         orchestrator_messages = state.get("orchestrator_messages", [])
         if not orchestrator_messages:
@@ -44,14 +49,27 @@ class Orchestrator:
             assert step_state
             self._append_feed(state, step_state, orchestrator_messages)
         
-        response = await llm_structured_output.ainvoke(orchestrator_messages)
-        orchestrator_messages.append(response["raw"])
-        parsed = response["parsed"]
+        if model_type ==  ModelType.LLAMA_CPP.value:
+            response = llm.invoke(
+                orchestrator_messages,
+                extra_body={
+                    "id_slot": 2,
+                    "json_schema": OrchestratorOutput.model_json_schema()
+                }
+            )
+            parsed = OrchestratorOutput.model_validate_json(cast(str, response))
+        else:
+            llm_structured_output = llm.with_structured_output(OrchestratorOutput, include_raw=True)
+            response = await llm_structured_output.ainvoke(orchestrator_messages)
+            orchestrator_messages.append(response["raw"])
+            parsed = response["parsed"]
+
         step_state = StepState(
-            action_type=parsed.result.action,
+            action_type=parsed.decision.action,
         )
-        if hasattr(parsed.result, "params"):
-            step_state["params"] = parsed.result.params
+        for k, v in parsed.decision.model_dump().items():
+            if k != "action":
+                step_state[k] = v
 
         return {
             "step_state": step_state,

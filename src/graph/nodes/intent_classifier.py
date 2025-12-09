@@ -1,12 +1,12 @@
+import json
 import logging
+from typing import cast
 
 from google.genai import types
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from src.schemas.llms import ModelType
-import json
 
 from src.prompts import INTENT_CLASSIFIER_SYSTEM, INTENT_CLASSIFIER_USER
-from src.schemas.llms import ModelSelection
+from src.schemas.llms import ModelSelection, ModelType
 from src.schemas.models import (
     GeneralChatIntent,
     IntentClassifierOutput,
@@ -39,21 +39,32 @@ class IntentClassifier:
             model_type=self.default_model.model_type
             model_name=self.default_model.model_name
             llm = get_model(model_type=model_type, model_name=model_name)
-        llm_structured_output = llm.with_structured_output(IntentClassifierOutput, include_raw=True)
         
         conversation = get_conversation_string(state)
+
+        # Optimize for llama.cpp inference
         if model_type == ModelType.LLAMA_CPP.value:
             schema = "\n<output_schema>" + json.dumps(IntentClassifierOutput.model_json_schema(), indent=4) + "</output_schema>"
+            feed = self._construct_feed(schema, conversation)
+            response = llm.invoke(
+                feed,
+                extra_body={
+                    "id_slot": 0,
+                    "json_schema": IntentClassifierOutput.model_json_schema(),
+                }
+            )
+            parsed = IntentClassifierOutput.model_validate_json(cast(str, response.content))
         else:
             schema = ""
-        feed = self._construct_feed(schema, conversation)
-        response = llm_structured_output.invoke(feed)
-        parsed = response["parsed"]
+            llm_structured_output = llm.with_structured_output(IntentClassifierOutput, include_raw=True)
+            feed = self._construct_feed(schema, conversation)
+            response = llm_structured_output.invoke(feed)#, extra_body={"id_slot": 1, "json_schema": IntentClassifierOutput.model_json_schema()})
+            parsed = response["parsed"]
         # TODO: retry mechanism
 
         result = parsed.result
         intent = result.intent
-        instruction = parsed.instruction
+        instruction = parsed.important_intent_and_instruction_summary
         if isinstance(result, LearnWordsIntent):
             words = result.words
             should_create_quizzes = result.should_create_quizzes

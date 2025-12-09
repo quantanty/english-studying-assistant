@@ -17,7 +17,7 @@ class WordEntryState(TypedDict, total=False):
 
 class StepState(TypedDict, total=False):
     action_type: Literal[
-        "define_words", "generate_quizzes", "present", "end"
+        "look_up_in_dictionary", "create_word_entries", "generate_quizzes", "present", "end"
     ]
     params: Any
     success: Optional[bool]

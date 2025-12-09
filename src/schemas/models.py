@@ -104,30 +104,40 @@ class IntentClassifierOutput(BaseModel):
     )
     
     result: Intent = Field(..., description="Classified intent with additional parameters (if any)")
-    instruction: Optional[str] = Field(..., description="Instruction (if any) about how to generate quizzes, whether to search dictionary or not, or how to present the answer, etc. Extracted from user's message")
+    important_intent_and_instruction_summary: Optional[str] = Field(..., description="summarize additional instruction (if any) about how to generate quizzes, whether to search dictionary or not, or how to present the answer, etc. Extracted from user's message")
     
     
 class PlanStep(BaseModel):
     action: str
-    purpose: str
+    purpose_of_this_action: str
 
 class PlannerOutput(BaseModel):
-    steps: List[PlanStep]
+    think_step_by_step: str
+    steps_in_the_plan: List[PlanStep]
 
 class DefineWordsParams(BaseModel):
     words: List[str] = Field(..., description="List of words to define")
 
 class GenerateQuizzesParams(BaseModel):
-    words: List[str] = Field(..., description="List of vocabulary to learn through quizzes")
-    instructions: Optional[str] = Field(..., description="Instruction to generate quizzes")
+    words_to_learn_through_quizzes: List[str] = Field(..., description="List of vocabulary to learn through quizzes")
+    instructions_for_quiz_generator_agent: Optional[str] = Field(..., description="Instruction to generate quizzes")
 
-class DefineWordsAction(BaseModel):
-    action: Literal["define_words"]
-    params: DefineWordsParams
+# class DefineWordsAction(BaseModel):
+#     action: Literal["define_words"]
+#     params: DefineWordsParams
+class LookUpInDictionaryAction(BaseModel):
+    action: Literal["look_up_in_dictionary"]
+    words_to_look_up: List[str]
+    
+class CreateWordEntriesAction(BaseModel):
+    action: Literal["create_word_entries"]
+    words_to_create_entry: List[str]
     
 class GenerateQuizzesAction(BaseModel):
     action: Literal["generate_quizzes"]
-    params: GenerateQuizzesParams
+    # params: GenerateQuizzesParams
+    words_to_learn_through_quizzes: List[str]
+    give_instructions_to_quiz_generator_agent: Optional[str]
     
 class PresentAction(BaseModel):
     action: Literal["present"]
@@ -137,7 +147,8 @@ class EndAction(BaseModel):
     
 OrchestratorActionOutput = Annotated[
     Union[
-        DefineWordsAction,
+        LookUpInDictionaryAction,
+        CreateWordEntriesAction,
         GenerateQuizzesAction,
         PresentAction,
         EndAction
@@ -146,8 +157,8 @@ OrchestratorActionOutput = Annotated[
 ]
 
 class OrchestratorOutput(BaseModel):
-    reasoning: str = Field(..., description="Reasoning for your decision")
-    result: OrchestratorActionOutput = Field(..., description="Action types")
+    reasoning_my_decision: str = Field(..., description="Reasoning for your decision")
+    decision: OrchestratorActionOutput = Field(..., description="Action types")
 
 class WordExtractorOutput(BaseModel):
     words: List[str] = Field(default_factory=list, description="English words to be defined.")
