@@ -15,6 +15,7 @@ class CustomGoogleModelName(StrEnum):
 
 class LlamaCppModelName(StrEnum):
     XLAM_2_1B = "xLAM-2-1b-fc-r"
+    GEMMA_3_1B = "gemma-3-1b"
 
 class ModelType(StrEnum):
     GOOGLE = "google"

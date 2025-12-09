@@ -99,7 +99,8 @@ class Settings:
         self.MAX_LLM_CALL_RETRIES = int(os.getenv("MAX_LLM_CALL_RETRIES", "3"))
 
         self.LLAMACPP_URL = {
-            "xLAM-2-1b-fc-r": os.getenv("LLAMACPP_XLAM_2_1B_URL")
+            "xLAM-2-1b-fc-r": os.getenv("LLAMACPP_XLAM_2_1B_URL"),
+            "gemma-3-1b": os.getenv("LLAMACPP_GEMMA_3_1B_URL"),
         }
         
         # JWT Configuration
