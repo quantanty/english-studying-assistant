@@ -145,7 +145,7 @@ class Assistant:
     
     async def get_stream_response(
         self,
-        messages: List[Message],
+        message: Message,
         session_id: str,
         user_id: Optional[str] = None,
         selected_model: SelectedModel | None = None,
@@ -159,7 +159,7 @@ class Assistant:
         
         try:
             async for chunk in self._graph.astream(
-                {"messages": dump_messages(messages), "selected_model": selected_model}, config=config, stream_mode="custom" # type: ignore
+                {"messages": dump_messages([message]), "selected_model": selected_model}, config=config, stream_mode="custom" # type: ignore
             ):
                 try:
                     if "presenter" in chunk:

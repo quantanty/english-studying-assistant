@@ -12,7 +12,7 @@ class AssistantClient:
         self.base_url = base_url
         self.timeout = timeout
         
-    def _parse_stream_line(self, line: str):
+    def  _parse_stream_line(self, line: str):
         line = line.strip()
         if line.startswith("data: "):
             data = line[6:]
@@ -20,17 +20,17 @@ class AssistantClient:
                 parsed = json.loads(data)
             except Exception as e:
                 raise Exception(f"Error JSON parsing message from server: {e}")
-            
-            if parsed["done"]:
+
+            if parsed["type"] == "done":
                 return None
-            return parsed["content"]
+            return parsed
         return None
         
     async def astream(
         self,
         message: str,
         session_id: str | None = None,
-    ) -> AsyncGenerator[str, None]:
+    ) -> AsyncGenerator[dict, None]:
         chat_request = ChatRequest(messages=[
             Message(role="user", content=message)
         ])
@@ -52,7 +52,8 @@ class AssistantClient:
                             parsed = self._parse_stream_line(line)
                             if parsed is None:
                                 break
-                            if parsed != "":
-                                yield parsed
+                            if parsed["type"] == "delta" and parsed["type"] == "":
+                                continue
+                            yield parsed
             except httpx.HTTPError as e:
                 raise e
