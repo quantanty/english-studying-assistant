@@ -1,6 +1,7 @@
 # Ignore env containing secrets
 .env
 .venv
+secrets.toml
 
 # Ignore Virtual Env
 env/
