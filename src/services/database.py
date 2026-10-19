@@ -11,8 +11,8 @@ from sqlmodel import (
 )
 
 from src.config import Environment, settings
-from src.models.session import Session as ChatSession
-from src.models.user import User
+from src.models.chat_sessions import ChatSession as ChatSession
+from src.models.users import User
 
 
 class DatabaseService:
@@ -48,6 +48,14 @@ class DatabaseService:
             session.commit()
             session.refresh(user)
             return user
+
+    async def create_google_user(self, google_sub: str, email: str, name: str) -> User:
+        with Session(self.engine) as session:
+            user = User(google_sub=google_sub, email=email, name=name)
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+            return user
         
     async def get_user(self, user_id: int) -> Optional[User]:
         with Session(self.engine) as session:
@@ -57,6 +65,12 @@ class DatabaseService:
     async def get_user_by_email(self, email: str) -> Optional[User]:
         with Session(self.engine) as session:
             statement = select(User).where(User.email == email)
+            user = session.exec(statement).first()
+            return user
+
+    async def get_user_by_google_sub(self, google_sub: str) -> Optional[User]:
+        with Session(self.engine) as session:
+            statement = select(User).where(User.google_sub == google_sub)
             user = session.exec(statement).first()
             return user
 

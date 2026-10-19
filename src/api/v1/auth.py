@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.config import settings
-from src.models.session import Session
-from src.models.user import User
+from src.models.chat_sessions import ChatSession
+from src.models.users import User
 from src.schemas.auth import (SessionResponse, TokenResponse, UserCreate,
                               UserResponse)
 from src.services.database import database_service
@@ -49,7 +49,7 @@ async def get_current_user(
         
 async def get_current_session(
     credentials: HTTPAuthorizationCredentials = Depends(security)
-) -> Session:
+) -> ChatSession:
     try:
         token = sanitize_string(credentials.credentials)
         session_id = verify_token(token)
@@ -122,6 +122,25 @@ async def login(
         
         token = create_access_token(str(user.id))
         return TokenResponse(access_token=token.access_token, token_type="bearer", expires_at=token.expires_at)        
+    except ValueError as ve:
+        raise HTTPException(status_code=422, detail=str(ve))
+
+@router.post("/google", response_model=TokenResponse)
+async def google_auth(request: Request, sub: str = Form(...), name: str = Form(...), email: str = Form(...)):
+    try:
+        sub = sanitize_string(sub)
+        email= sanitize_string(email)
+        name = sanitize_string(name)
+
+        user = await database_service.get_user_by_google_sub(sub)
+        if not user:
+            user = await database_service.create_google_user(
+                google_sub=sub,
+                email=email,
+                name=name,
+            )
+        token = create_access_token(str(user.id))
+        return TokenResponse(access_token=token.access_token, token_type="bearer", expires_at=token.expires_at)
     except ValueError as ve:
         raise HTTPException(status_code=422, detail=str(ve))
 
