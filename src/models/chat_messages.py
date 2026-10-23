@@ -23,6 +23,6 @@ class ChatMessage(BaseModel, table=True):
         default=None,
         sa_column=Column(JSONB)
     )
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timzeone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     chat_session: Optional[ChatSession] = Relationship(back_populates="messages")

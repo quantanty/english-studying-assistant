@@ -8,7 +8,7 @@ class Message(BaseModel):
     role: Literal["user", "assistant", "system"] = Field(..., description="The role of the message sender")
     content: str = Field(..., description="The content of the message", min_length=1, max_length=3000)
 
-class ChatRequzest(BaseModel):
+class ChatRequest(BaseModel):
     # messages: List[Message] = Field(
     #     ...,
     #     description="List of messages in the conversation",

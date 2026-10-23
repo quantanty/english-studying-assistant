@@ -18,5 +18,5 @@ class ChatSession(BaseModel, table=True):
     title: str
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    user: Optional[User] = Relationship(back_populates="chat_sessions")
-    messages = list["ChatMessage"] = Relationship(back_populates="chat_session")
+    user: Optional["User"] = Relationship(back_populates="chat_sessions")
+    messages: list["ChatMessage"] = Relationship(back_populates="chat_session")
