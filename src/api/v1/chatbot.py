@@ -31,17 +31,25 @@ async def chat_stream(
 ):
     sanitized_session_id = sanitize_string(session_id)
 
-    if session_id is None:
-        session_id = str(uuid.uuid4())
-        session = await database_service.create_session(session_id, user.id)
-        session_response = MetadataPayload(session_id=session.id, session_name=session.name)
-        yield f"data: {json.dumps(session_response.model_dump())}\n\n"
-    elif not await database_service.can_user_acccess_session(user.id, sanitized_session_id):
+    if sanitized_session_id and not await database_service.can_user_acccess_session(user.id, sanitized_session_id):
         raise HTTPException(status_code=403, detail="You do not have permission to access this chat session.")
+
+    # if session_id is None:
+    #     session_id = str(uuid.uuid4())
+    #     session = await database_service.create_session(session_id, user.id)
+    #     session_response = MetadataPayload(session_id=session.id, session_name=session.name)
+    #     yield f"data: {json.dumps(session_response.model_dump())}\n\n"
+    # elif not await database_service.can_user_acccess_session(user.id, sanitized_session_id):
+    #     raise HTTPException(status_code=403, detail="You do not have permission to access this chat session.")
 
     try:
         async def event_generator():
             try:
+                session_id = str(uuid.uuid4())
+                session = await database_service.create_session(session_id, user.id)
+                session_response = MetadataPayload(session_id=session.id, session_name=session.name)
+                yield f"data: {json.dumps(session_response.model_dump())}\n\n"
+
                 async for chunk in assistant.get_stream_response(
                     chat_request.message, session_id, str(user.id)
                 ):
