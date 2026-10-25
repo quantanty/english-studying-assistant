@@ -19,10 +19,10 @@ class ChatMessage(BaseModel, table=True):
     role: str = Field(nullable=False)
     content: str = Field(nullable=False)
     status: str = Field(nullable=False, default="completed")
-    metadata: dict[str, Any] | None = Field(
+    extra_metadata: dict[str, Any] | None = Field(
         default=None,
-        sa_column=Column(JSONB)
+        sa_column=Column("metadata", JSONB)
     )
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-    chat_session: Optional[ChatSession] = Relationship(back_populates="messages")
+    chat_session: Optional["ChatSession"] = Relationship(back_populates="messages")
