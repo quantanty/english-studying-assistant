@@ -45,9 +45,8 @@ async def chat_stream(
     try:
         async def event_generator():
             try:
-                session_id = str(uuid.uuid4())
-                session = await database_service.create_session(session_id, user.id)
-                session_response = MetadataPayload(session_id=session.id, session_name=session.name)
+                session = await database_service.create_session(user.id, user.name)
+                session_response = MetadataPayload(session_id=session.id, session_name=session.title)
                 yield f"data: {json.dumps(session_response.model_dump())}\n\n"
 
                 async for chunk in assistant.get_stream_response(

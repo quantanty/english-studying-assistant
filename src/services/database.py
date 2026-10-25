@@ -3,12 +3,7 @@ from typing import List, Optional
 from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.pool import QueuePool
-from sqlmodel import (
-    Session,
-    SQLModel,
-    create_engine,
-    select
-)
+from sqlmodel import Session, SQLModel, create_engine, select
 
 from src.config import Environment, settings
 from src.models.chat_sessions import ChatSession as ChatSession
@@ -85,9 +80,9 @@ class DatabaseService:
             session.commit()
             return True
 
-    async def create_session(self, session_id: str, user_id: int, name: str = "") -> ChatSession:
+    async def create_session(self, user_id: int, name: str = "") -> ChatSession:
         with Session(self.engine) as session:
-            chat_session = ChatSession(id=session_id, user_id=user_id, name=name)
+            chat_session = ChatSession(user_id=user_id, name=name)
             session.add(chat_session)
             session.commit()
             session.refresh(chat_session)
