@@ -2,6 +2,7 @@ from typing import AsyncGenerator
 from src.schemas.chat import ChatRequest, Message
 import httpx
 import json
+from pydantic import TypeAdapter
 
 class AssistantClient:
     def __init__(
@@ -21,8 +22,6 @@ class AssistantClient:
             except Exception as e:
                 raise Exception(f"Error JSON parsing message from server: {e}")
 
-            if parsed["type"] == "done":
-                return None
             return parsed
         return None
         
@@ -31,9 +30,7 @@ class AssistantClient:
         message: str,
         session_id: str | None = None,
     ) -> AsyncGenerator[dict, None]:
-        chat_request = ChatRequest(messages=[
-            Message(role="user", content=message)
-        ])
+        chat_request = ChatRequest(message=Message(role="user", content=message))
         params = {
             "session_id": session_id
         }
