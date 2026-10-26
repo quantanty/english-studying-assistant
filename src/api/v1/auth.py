@@ -31,8 +31,7 @@ async def get_current_user(
                 headers={"WWW-Authenticate": "Bearer"}
             )
             
-        user_id_int = int(user_id)
-        user = await database_service.get_user(user_id_int)
+        user = await database_service.get_user(user_id)
         if user is None:
             raise HTTPException(
                 status_code=404,
@@ -192,6 +191,7 @@ async def delete_session(session_id: str, user: User = Depends(get_current_user)
 @router.get("/sessions", response_model=List[SessionResponse])
 async def get_user_sessions(user: User = Depends(get_current_user)):
     try:
+        print("wowowowow")
         sessions = await database_service.get_user_sessions(user.id)
         return [
             SessionResponse(
