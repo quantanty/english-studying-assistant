@@ -34,28 +34,24 @@ async def chat_stream(
     if sanitized_session_id and not await database_service.can_user_acccess_session(user.id, sanitized_session_id):
         raise HTTPException(status_code=403, detail="You do not have permission to access this chat session.")
 
-    # if session_id is None:
-    #     session_id = str(uuid.uuid4())
-    #     session = await database_service.create_session(session_id, user.id)
-    #     session_response = MetadataPayload(session_id=session.id, session_name=session.name)
-    #     yield f"data: {json.dumps(session_response.model_dump())}\n\n"
-    # elif not await database_service.can_user_acccess_session(user.id, sanitized_session_id):
-    #     raise HTTPException(status_code=403, detail="You do not have permission to access this chat session.")
-
     try:
         async def event_generator():
             try:
                 session = await database_service.create_session(user.id, user.name)
+                await database_service.add_message(session_id=session.id, role="user", content=chat_request.message.content, status="completed")
                 session_response = MetadataPayload(session_id=session.id, session_name=session.title)
                 yield f"data: {json.dumps(session_response.model_dump())}\n\n"
 
+                content = ""
                 async for chunk in assistant.get_stream_response(
-                    chat_request.message, session_id, str(user.id)
+                    chat_request.message, session.id, str(user.id)
                 ):
-                    response = DeltaPayload(content=chunk)
+                    content += chunk
+                    response = DeltaPayload(content=chunk) 
                     yield f"data: {json.dumps(response.model_dump())}\n\n"
                 final_response = DonePayload()
                 yield f"data: {json.dumps(final_response.model_dump())}\n\n"
+                database_service.add_message(session_id=session.id, role="assistant", content=content, status="completed")
             except Exception as e:
                 error_response = ErrorPayload(error=str(e))
                 yield f"data: {json.dumps(error_response.model_dump())}\n\n"
