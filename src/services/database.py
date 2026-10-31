@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from fastapi import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
@@ -6,7 +6,8 @@ from sqlalchemy.pool import QueuePool
 from sqlmodel import Session, SQLModel, create_engine, select
 
 from src.config import Environment, settings
-from src.models.chat_sessions import ChatSession as ChatSession
+from src.models.chat_messages import ChatMessage
+from src.models.chat_sessions import ChatSession
 from src.models.users import User
 
 
@@ -120,6 +121,20 @@ class DatabaseService:
             session.commit()
             session.refresh(chat_session)
             return chat_session
+
+    async def get_messages(self, session_id: str):
+        with Session(self.engine) as session:
+            statement = select(ChatMessage).where(ChatMessage.session_id == session_id).order_by(ChatMessage.created_at.asc()).order_by(ChatMessage.id.asc())
+            messages = session.exec(statement).all()
+            return messages
+
+    async def add_message(self, session_id: str, role: str, content: str, status: str, extra_metadata: dict[str, Any] | None = None):
+        with Session(self.engine) as session:
+            chat_message = ChatMessage(session_id=session_id, role=role, content=content, status=status, extra_metadata=extra_metadata)
+            session.add(chat_message)
+            session.commit()
+            session.refresh(chat_message)
+            return chat_message
 
     async def get_session_maker(self):
         return Session(self.engine)
