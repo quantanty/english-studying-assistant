@@ -1,0 +1,28 @@
+options:
+  fast:
+    default: 
+      - llama-cpp
+      - FLM-3-1.7b
+    intent-classifier: 
+      - llama-cpp
+      -  FLM-3-1.7b
+    planer: 
+      - "llama-cpp"
+      - FLM-3-1.7b
+    orchestrator: 
+      - "llama-cpp"
+      - FLM-3-1.7b
+    word_entry_generator: 
+      - "llama-cpp"
+      - FLM-3-1.7b
+    quiz_generator: 
+      - "llama-cpp"
+      - FLM-3-1.7b
+    presenter: 
+      - "llama-cpp"
+      - FLM-3-1.7b
+
+llm_urls:
+  llama-cpp:
+    default: http://127.0.0.1:8080
+    FLM-3-1.7b: http://127.0.0.1:8080

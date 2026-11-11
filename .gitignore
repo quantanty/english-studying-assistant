@@ -32,5 +32,8 @@ logs/
 *.log
 server_log.txt
 
+# LLM Configs
+configs/llm.yaml
+
 # Personal
 personal_experiment/

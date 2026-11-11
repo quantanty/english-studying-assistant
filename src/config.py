@@ -2,6 +2,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from enum import Enum
 import os
+import yaml
 
 class Environment(str, Enum):
     DEVELOPMENT = "development"
@@ -97,11 +98,6 @@ class Settings:
         self.DEFAULT_LLM_TEMPERATURE = float(os.getenv("DEFAULT_LLM_TEMPERATURE", "0.2"))
         self.MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2000"))
         self.MAX_LLM_CALL_RETRIES = int(os.getenv("MAX_LLM_CALL_RETRIES", "3"))
-
-        self.LLAMACPP_URL = {
-            "xLAM-2-1b-fc-r": os.getenv("LLAMACPP_XLAM_2_1B_URL"),
-            "gemma-3-1b": os.getenv("LLAMACPP_GEMMA_3_1B_URL"),
-        }
         
         # JWT Configuration
         self.JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
@@ -117,5 +113,12 @@ class Settings:
         self.POSTGRES_POOL_SIZE = int(os.getenv("POSTGRES_POOL_SIZE", "20"))
         self.POSTGRES_MAX_OVERFLOW = int(os.getenv("POSTGRES_MAX_OVERFLOW", "10"))
         self.CHECKPOINT_TABLES = ["checkpoint_blobs", "checkpoint_writes", "checkpoints"]
+
+        # LLM configurations
+        with open(os.path.join(os.path.dirname(__file__), "..", "configs", "llm.yaml"), "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+
+        self.LLM_OPTIONS = data["options"]
+        self.LLM_URLS = data["llm_urls"]
 
 settings = Settings()
