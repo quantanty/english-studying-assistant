@@ -1,18 +1,23 @@
-from src.api.v1 import api_router
-from src.config import settings
+from contextlib import asynccontextmanager
+from datetime import datetime
+from typing import Any, Dict
 
-from fastapi import (
-    FastAPI,
-    Request,
-    status
-)
-
+from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
-from typing import Dict, Any
-from datetime import datetime
+from src.api.v1 import api_router
+from src.config import settings
 from src.services.database import database_service
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await database_service.initialize()
+
+    yield
+
+    await database_service.close()
+    
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION
