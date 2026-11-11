@@ -26,32 +26,32 @@ assistant = Assistant(default_model=fast_model)
 async def chat_stream(
     request: Request,
     chat_request: ChatRequest,
-    session_id: str,
+    session_id: str = None,
     user: User = Depends(get_current_user)
 ):
     sanitized_session_id = sanitize_string(session_id)
 
-    if sanitized_session_id and not await database_service.can_user_acccess_session(user.id, sanitized_session_id):
+    if session_id and not await database_service.can_user_acccess_session(user.id, sanitized_session_id):
         raise HTTPException(status_code=403, detail="You do not have permission to access this chat session.")
 
     try:
         async def event_generator():
             try:
-                session = await database_service.create_session(user.id, user.name)
-                await database_service.add_message(session_id=session.id, role="user", content=chat_request.message.content, status="completed")
-                session_response = MetadataPayload(session_id=session.id, session_name=session.title)
+                session = await database_service.create_session(user.id)
+                await database_service.add_message(session_id=str(session.id), role="user", content=chat_request.message.content, status="completed")
+                session_response = MetadataPayload(session_id=str(session.id), session_name=session.title)
                 yield f"data: {json.dumps(session_response.model_dump())}\n\n"
 
                 content = ""
                 async for chunk in assistant.get_stream_response(
-                    chat_request.message, session.id, str(user.id)
+                    chat_request.message, str(session.id), str(user.id)
                 ):
                     content += chunk
                     response = DeltaPayload(content=chunk) 
                     yield f"data: {json.dumps(response.model_dump())}\n\n"
                 final_response = DonePayload()
                 yield f"data: {json.dumps(final_response.model_dump())}\n\n"
-                database_service.add_message(session_id=session.id, role="assistant", content=content, status="completed")
+                database_service.add_message(session_id=str(session.id), role="assistant", content=content, status="completed")
             except Exception as e:
                 error_response = ErrorPayload(error=str(e))
                 yield f"data: {json.dumps(error_response.model_dump())}\n\n"
