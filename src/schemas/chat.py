@@ -19,7 +19,7 @@ class ChatRequest(BaseModel):
 class MetadataPayload(BaseModel):
     type: Literal["metadata"] = "metadata"
     session_id: str
-    session_name: str
+    session_name: str | None
 
 class DeltaPayload(BaseModel):
     type: Literal["delta"] = "delta"

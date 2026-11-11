@@ -53,7 +53,7 @@ class UserResponse(BaseModel):
     
 class SessionResponse(BaseModel):
     session_id: str = Field(..., description="The unique identifier for the chat session")
-    name: str = Field(default="", description="Name of the session", max_length=100)
+    title: str = Field(default="", description="Name of the session", max_length=100)
     
     @field_validator("name")
     @classmethod

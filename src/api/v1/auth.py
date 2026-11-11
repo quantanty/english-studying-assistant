@@ -150,7 +150,7 @@ async def create_session(user: User = Depends(get_current_user)):
 
         session = await database_service.create_session(session_id, user.id)
 
-        return SessionResponse(session_id=session_id, name=session.name)
+        return SessionResponse(session_id=session_id, title=session.title)
     except ValueError as ve:
         raise HTTPException(
             status_code=422, detail=str(ve)
@@ -171,7 +171,7 @@ async def update_session_name(
 
         session = await database_service.update_session_name(sanitized_session_id, sanitized_name)
 
-        return SessionResponse(session_id=sanitized_session_id, name=session.name)
+        return SessionResponse(session_id=sanitized_session_id, title=session.title)
     except ValueError as ve:
         raise HTTPException(status_code=422, detail=str(ve))
 
@@ -196,7 +196,7 @@ async def get_user_sessions(user: User = Depends(get_current_user)):
         return [
             SessionResponse(
                 session_id=sanitize_string(session.id),
-                name=sanitize_string(session.name),
+                title=sanitize_string(session.title),
             )
             for session in sessions
         ]
