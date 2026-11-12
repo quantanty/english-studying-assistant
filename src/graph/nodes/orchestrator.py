@@ -8,7 +8,6 @@ from src.prompts import (
     ORCHESTRATOR_USER_NEXT,
     ORCHESTRATOR_USER_START,
 )
-from src.schemas.llms import ModelType
 from src.schemas.models import Action, OrchestratorOutput
 from src.schemas.state import State, StepState
 from src.services.llm_client import get_model
@@ -49,7 +48,7 @@ class Orchestrator:
             assert step_state
             self._append_feed(state, step_state, orchestrator_messages)
         
-        if model_type ==  ModelType.LLAMA_CPP.value:
+        if model_type ==  "llama-cpp":
             response = llm.invoke(
                 orchestrator_messages,
                 extra_body={

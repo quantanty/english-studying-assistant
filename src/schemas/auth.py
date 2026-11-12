@@ -55,8 +55,8 @@ class SessionResponse(BaseModel):
     session_id: str = Field(..., description="The unique identifier for the chat session")
     title: str = Field(default="", description="Name of the session", max_length=100)
     
-    @field_validator("name")
+    @field_validator("title")
     @classmethod
-    def sannitize_name(cls, v: str) -> str:
+    def sannitize_title(cls, v: str) -> str:
         sanitized = re.sub(r'[<>{}[\]()\'"`]', "", v)
         return sanitized

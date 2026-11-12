@@ -6,7 +6,7 @@ from google.genai import types
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from src.prompts import INTENT_CLASSIFIER_SYSTEM, INTENT_CLASSIFIER_USER
-from src.schemas.llms import ModelSelection, ModelType
+from src.schemas.llms import ModelSelection
 from src.schemas.models import (
     GeneralChatIntent,
     IntentClassifierOutput,
@@ -43,13 +43,14 @@ class IntentClassifier:
         conversation = get_conversation_string(state)
 
         # Optimize for llama.cpp inference
-        if model_type == ModelType.LLAMA_CPP.value:
+        if model_type == "llama-cpp":
             schema = "\n<output_schema>" + json.dumps(IntentClassifierOutput.model_json_schema(), indent=4) + "</output_schema>"
             feed = self._construct_feed(schema, conversation)
             response = llm.invoke(
                 feed,
                 extra_body={
-                    "id_slot": 0,
+                    "id_slot": 2,
+                    "reasoning_effort": "none",
                     "json_schema": IntentClassifierOutput.model_json_schema(),
                 }
             )

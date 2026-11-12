@@ -9,7 +9,7 @@ from src.prompts import (
     PLANNER_USER_PHASE_1,
     PLANNER_USER_PHASE_2,
 )
-from src.schemas.llms import ModelSelection, ModelType
+from src.schemas.llms import ModelSelection
 from src.schemas.models import PlannerOutput
 from src.schemas.state import State
 from src.services.llm_client import get_model
@@ -48,7 +48,7 @@ class Planner:
 
         feed = self._construct_structured_output_feed(intent_string, conversation)
 
-        if model_type == ModelType.LLAMA_CPP.value:
+        if model_type == "llama-cpp":
             plan_response = llm.invoke(
                 feed,
                 extra_body={
