@@ -52,7 +52,7 @@ class Planner:
             plan_response = llm.invoke(
                 feed,
                 extra_body={
-                    "id_slot": 1,
+                    **selected_model["model_configs"],
                     "json_schema": PlannerOutput.model_json_schema(),
                 }
             )

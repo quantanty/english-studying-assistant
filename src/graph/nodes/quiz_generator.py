@@ -26,13 +26,17 @@ class QuizGenerator:
     async def __call__(self, state: State):
         selected_model = state.get("selected_model")
         if selected_model:
+            # for this node only
             model_selection = selected_model.get("quiz_generator")
         else:
             model_selection = None
         if model_selection:
-            llm = get_model(model_type=model_selection.model_type, model_name=model_selection.model_name)
+            model_name = model_selection.model_name
+            model_type = model_selection.model_type
         else:
-            llm = get_model(model_type=self.default_model.model_type, model_name=self.default_model.model_name)
+            model_type = self.default_model.model_type
+            model_name = self.default_model.model_name
+        llm = get_model(model_type=model_type, model_name=model_name)
         llm = llm.bind_tools(self.tools)
         
         qgen_messages = state.get("qgen_messages", [])
@@ -51,7 +55,17 @@ class QuizGenerator:
 
             qgen_messages = self.construct_initial_feed(instruction, words, retrieved_information, user_message)
 
-        response = await llm.ainvoke(qgen_messages)
+        # response = await llm.ainvoke(qgen_messages)
+        if model_type == "llama-cpp":
+            response = await llm.ainvoke(
+                qgen_messages,
+                extra_body={
+                    **selected_model["model_configs"],
+                }
+            )
+        else:
+            response = await llm.ainvoke(qgen_messages)
+
 
         if response.tool_calls:
             qgen_messages.append(response)

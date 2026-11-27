@@ -3,11 +3,8 @@ from typing import cast
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-from src.prompts import (
-    ORCHESTRATOR_SYSTEM,
-    ORCHESTRATOR_USER_NEXT,
-    ORCHESTRATOR_USER_START,
-)
+from src.prompts import (ORCHESTRATOR_SYSTEM, ORCHESTRATOR_USER_NEXT,
+                         ORCHESTRATOR_USER_START)
 from src.schemas.models import Action, OrchestratorOutput
 from src.schemas.state import State, StepState
 from src.services.llm_client import get_model
@@ -52,7 +49,7 @@ class Orchestrator:
             response = llm.invoke(
                 orchestrator_messages,
                 extra_body={
-                    "id_slot": 2,
+                    **selected_model["model_configs"],
                     "json_schema": OrchestratorOutput.model_json_schema()
                 }
             )

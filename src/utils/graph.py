@@ -10,7 +10,7 @@ def dump_messages(messages: list[Message]) -> list[dict]:
     return [message.model_dump() for message in messages]
 
 def _get_model(model: dict):
-    return ModelSelection(model_type=model[0], model_name=model[1])
+    return ModelSelection(model_type=model[0], model_name=model[1], extra_body=model[2] if len(model) > 2 else {})
 
 def select_model(option: Literal["fast", "medium", "pro"]) -> SelectedModel:    
     models = settings.LLM_OPTIONS[option]

@@ -27,9 +27,13 @@ class Presenter:
         else:
             model_selection = None
         if model_selection:
-            llm = get_model(model_type=model_selection.model_type, model_name=model_selection.model_name)
+            model_type=model_selection.model_type
+            model_name=model_selection.model_name
+            llm = get_model(model_type=model_type, model_name=model_name)
         else:
-            llm = get_model(model_type=self.default_model.model_type, model_name=self.default_model.model_name)
+            model_type=self.default_model.model_type
+            model_name=self.default_model.model_name
+            llm = get_model(model_type=model_type, model_name=model_name)
         
         intent = get_intent_string(state)
         conversation = get_conversation_string(state)
@@ -39,7 +43,16 @@ class Presenter:
         
         tokens = []
         feed = self._construct_feed(conversation, intent, workflow_log, prepared_data)
-        async for chunk in llm.astream(feed):
+
+        if model_type == "llama-cpp":
+            stream = llm.astream(
+                feed,
+                extra_body={**selected_model["model_configs"]}
+            )
+        else:
+            stream = llm.astream(feed)
+            
+        async for chunk in stream:
             if getattr(chunk, "content", None):
                 tokens.append(chunk.content)
                 writer({"presenter": chunk.content})

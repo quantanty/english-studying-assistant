@@ -1,4 +1,5 @@
 import logging
+from typing import cast
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -23,18 +24,19 @@ class WordEntryGenerator:
         else:
             model_selection = None
         if model_selection:
-            llm = get_model(model_type=model_selection.model_type, model_name=model_selection.model_name)
+            model_type=model_selection.model_type
+            model_name=model_selection.model_name
         else:
-            llm = get_model(model_type=self.default_model.model_type, model_name=self.default_model.model_name)
-        llm_structured_output = llm.with_structured_output(WordEntry)
+            model_type=self.default_model.model_type
+            model_name=self.default_model.model_name
+        llm = get_model(model_type=model_type, model_name=model_name)
+        # llm_structured_output = llm.with_structured_output(WordEntry)
 
         report_string = "Report from Word Entry Generator agent:"
 
         words_to_define = get_words_to_define(state)
         collected_data = state.get("collected_data", {})
 
-        # if not words_to_define or not collected_data:
-        #     return {}
         if not words_to_define:
             report_string += "\nI didn't receive any words to define."
             step_state = write_report(state, report_string)
@@ -45,11 +47,24 @@ class WordEntryGenerator:
         for word in words_to_define:
             feed = self._construct_feed(word, collected_data)
             try:
-                response = llm.invoke(feed)
+                if model_type == "llama-cpp":
+                    response = llm.invoke(
+                        feed,
+                        extra_body={
+                            **selected_model["model_configs"],
+                            "json_schema": WordEntry.model_json_schema(),
+                        }
+                    )
+                    parsed = WordEntry.model_validate_json(cast(str, response.content))
+                else:
+                    llm_structured_output = llm.with_structured_output(WordEntry, include_raw=True)
+                    response = llm_structured_output.invoke(feed)
+                    parsed = response["raw"]
+                
                 word_entries[word] = WordEntryState(
                     word=word,
                     result="success",
-                    **response.model_dump()
+                    **parsed.model_dump()
                 )
                 report_string += f"\nSuccesfully created a word entry for the word '{word}'."
             except Exception as e:

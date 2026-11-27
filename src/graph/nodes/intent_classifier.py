@@ -49,8 +49,7 @@ class IntentClassifier:
             response = llm.invoke(
                 feed,
                 extra_body={
-                    "id_slot": 2,
-                    "reasoning_effort": "none",
+                    **selected_model["model_configs"],
                     "json_schema": IntentClassifierOutput.model_json_schema(),
                 }
             )
