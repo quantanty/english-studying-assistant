@@ -37,7 +37,7 @@ system: |-
     - create_multiple_choice_question
     - create_fill_in_blank_question
     - create_true_false_question
-  - So if the instruction says "create 5 multiple choice questions", you should you `create_multiple_choice_question` five times.
+  - So if the instruction says "create 5 multiple choice questions", you should use `create_multiple_choice_question` five times.
   </tools>
 
   <workflow>
